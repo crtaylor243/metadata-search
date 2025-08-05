@@ -14,6 +14,7 @@ export function ReleasesWithTracks() {
   const { selectedArtist, selectedReleases, toggleRelease } = useSelectionStore();
   const [expandedReleases, setExpandedReleases] = useState<Set<string>>(new Set());
   const [showAll, setShowAll] = useState(false);
+  const [showMastersOnly, setShowMastersOnly] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['releases', selectedArtist?.id],
@@ -27,9 +28,14 @@ export function ReleasesWithTracks() {
   });
 
   const releases = data?.releases || [];
-  const mainReleases = releases.filter((r: any) => 
+  const allMainReleases = releases.filter((r: any) => 
     r.type === 'master' || r.role === 'Main'
   );
+  
+  // Apply master releases filter
+  const mainReleases = showMastersOnly 
+    ? allMainReleases.filter((r: any) => r.type === 'master')
+    : allMainReleases;
 
   // Get track details for all main releases to have complete metadata
   const trackQueries = useQueries({
@@ -98,7 +104,7 @@ export function ReleasesWithTracks() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>{selectedArtist.title} - Releases & Tracks</span>
+          <span>Releases & Tracks</span>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -122,7 +128,27 @@ export function ReleasesWithTracks() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4 max-h-96 overflow-y-auto">
+        {/* Filter Options */}
+        <div className="flex items-center justify-between pb-4 border-b">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="masters-only-releases"
+              checked={showMastersOnly}
+              onCheckedChange={setShowMastersOnly}
+            />
+            <label
+              htmlFor="masters-only-releases"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Show master releases only
+            </label>
+          </div>
+          <Badge variant="outline" className="text-xs">
+            {mainReleases.length} of {allMainReleases.length} releases
+          </Badge>
+        </div>
+        
+        <div className="space-y-4 mt-4 lg:max-h-none lg:overflow-y-visible max-h-96 overflow-y-auto">
           {mainReleases.map((release: any) => {
             const isSelected = selectedReleases.some(r => r.id === release.id);
             const isExpanded = expandedReleases.has(release.id);

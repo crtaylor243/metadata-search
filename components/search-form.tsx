@@ -14,7 +14,6 @@ import { cn } from '@/lib/utils';
 export function SearchForm() {
   const [query, setQuery] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [isArtistSelected, setIsArtistSelected] = useState(false);
   
   const { selectedArtist, setSelectedArtist, clearSelection } = useSelectionStore();
   const addSearch = useHistoryStore(state => state.addSearch);
@@ -34,13 +33,11 @@ export function SearchForm() {
     e.preventDefault();
     if (query.trim()) {
       setSearchTerm(query.trim());
-      setIsArtistSelected(false);
     }
   };
   
   const handleSelectArtist = (artist: any) => {
     setSelectedArtist(artist);
-    setIsArtistSelected(true);
     addSearch({
       query: searchTerm,
       resultCount: data?.results?.length || 0,
@@ -52,7 +49,6 @@ export function SearchForm() {
   const handleClear = () => {
     setQuery('');
     setSearchTerm('');
-    setIsArtistSelected(false);
     clearSelection();
   };
   
@@ -60,17 +56,20 @@ export function SearchForm() {
     <div className="space-y-6">
       {/* Search Input Section */}
       <div className="space-y-2">
-        <form onSubmit={handleSearch} className="relative">
-          <div className="relative flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search for an artist (e.g., Metallica, The Beatles, Pink Floyd)"
-                className="pl-10 pr-4 h-12 text-base border-2 focus:border-primary transition-colors"
-              />
-            </div>
+        <form onSubmit={handleSearch} className="space-y-3">
+          {/* Search Input */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search for an artist"
+              className="pl-10 pr-4 h-12 text-base border-2 focus:border-primary transition-colors w-full"
+            />
+          </div>
+          
+          {/* Search Buttons */}
+          <div className="flex gap-2">
             <Button 
               type="submit" 
               disabled={isLoading || !query.trim()}
@@ -105,13 +104,6 @@ export function SearchForm() {
           </div>
         </form>
         
-        {/* Search hints */}
-        {!searchTerm && !selectedArtist && (
-          <p className="text-sm text-muted-foreground flex items-center gap-2">
-            <TrendingUp className="w-3 h-3" />
-            Try searching for popular artists to explore their discography
-          </p>
-        )}
       </div>
       
       {/* Error State */}
@@ -125,7 +117,7 @@ export function SearchForm() {
       )}
       
       {/* Selected Artist Card */}
-      {isArtistSelected && selectedArtist && (
+      {selectedArtist && (
         <div className="relative overflow-hidden rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-6 shadow-lg">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
           <div className="relative">
@@ -149,17 +141,22 @@ export function SearchForm() {
       )}
       
       {/* Search Results */}
-      {!isArtistSelected && data?.results && (
+      {!selectedArtist && data?.results && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Search Results</h3>
-            <Badge variant="secondary" className="text-sm">
-              {data.results.length} {data.results.length === 1 ? 'result' : 'results'}
-            </Badge>
-          </div>
-          
-          <div className="grid gap-3">
-            {data.results.map((artist: any, index: number) => (
+          {(() => {
+            const filteredResults = data.results;
+            
+            return (
+              <>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Search Results</h3>
+                  <Badge variant="secondary" className="text-sm">
+                    {filteredResults.length} {filteredResults.length === 1 ? 'result' : 'results'}
+                  </Badge>
+                </div>
+                
+                <div className="grid gap-3">
+                  {filteredResults.map((artist: any, index: number) => (
               <div
                 key={artist.id}
                 onClick={() => handleSelectArtist(artist)}
@@ -203,9 +200,12 @@ export function SearchForm() {
                     <CheckCircle2 className="w-4 h-4 ml-2" />
                   </Button>
                 </div>
-              </div>
-            ))}
-          </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            );
+          })()}
         </div>
       )}
       

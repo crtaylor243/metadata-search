@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 
-export function exportToExcel(data: {
+export function exportToSpreadsheet(data: {
   artist: any;
   releases: any[];
   trackDetails: Map<string, any>;

@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Download, FileSpreadsheet } from 'lucide-react';
 import { useSelectionStore } from '@/stores/selection-store';
-import { exportToExcel } from '@/lib/export-utils';
+import { exportToSpreadsheet } from '@/lib/export-utils';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
@@ -52,7 +52,7 @@ export function ExportButton() {
         }
       }
       
-      exportToExcel({
+      exportToSpreadsheet({
         artist: selectedArtist,
         releases: selectedReleases,
         trackDetails: trackDetailsMap
@@ -121,12 +121,12 @@ export function ExportButton() {
         {isExporting ? (
           <>
             <FileSpreadsheet className="w-4 h-4 mr-2 animate-pulse" />
-            Generating Excel...
+            Generating spreadsheet...
           </>
         ) : (
           <>
             <Download className="w-4 h-4 mr-2" />
-            Export to Excel ({selectedReleases.length} albums)
+            Export to spreadsheet ({selectedReleases.length} albums)
           </>
         )}
       </Button>

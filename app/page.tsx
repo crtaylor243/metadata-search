@@ -38,7 +38,7 @@ export default function Home() {
               <CardHeader>
                 <CardTitle>Export Data</CardTitle>
                 <CardDescription>
-                  Download selected releases as Excel
+                  Download selected releases as spreadsheet
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -69,7 +69,7 @@ export default function Home() {
           <CardHeader>
             <CardTitle>Export Data</CardTitle>
             <CardDescription>
-              Download selected releases as Excel
+              Download selected releases as spreadsheet
             </CardDescription>
           </CardHeader>
           <CardContent>

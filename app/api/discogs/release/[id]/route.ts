@@ -37,10 +37,50 @@ export async function GET(
       ).map((a: any) => a.name),
       performers: track.artists?.map((a: any) => a.name) || [data.artists?.[0]?.name]
     }));
+
+    // Process label information for better display
+    const processedLabels = data.labels?.map((label: any) => ({
+      name: label.name,
+      catno: label.catno,
+      entity_type: label.entity_type
+    })) || [];
+
+    // Process format information for better display
+    const processedFormats = data.formats?.map((format: any) => ({
+      name: format.name,
+      qty: format.qty,
+      descriptions: format.descriptions || []
+    })) || [];
+
+    // Create a clean display format string
+    const formatDisplay = processedFormats.length > 0 
+      ? processedFormats.map(f => {
+          const parts = [f.name];
+          if (f.descriptions?.length > 0) {
+            parts.push(...f.descriptions); // Include all descriptions
+          }
+          return parts.join(', ');
+        }).join(' + ')
+      : 'Unknown';
+
+    // Create a clean label display string
+    const labelDisplay = processedLabels.length > 0
+      ? processedLabels.map(l => {
+          const parts = [l.name];
+          if (l.catno) parts.push(`(${l.catno})`);
+          return parts.join(' ');
+        }).join(', ')
+      : 'Unknown';
     
     return NextResponse.json({
       ...data,
-      processedTracks
+      processedTracks,
+      processedLabels,
+      processedFormats,
+      // Convenience fields for display
+      displayFormat: formatDisplay,
+      displayLabel: labelDisplay,
+      displayYear: data.year || data.released?.split('-')[0] || 'Unknown'
     });
   } catch (error) {
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });

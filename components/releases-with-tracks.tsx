@@ -31,12 +31,12 @@ export function ReleasesWithTracks() {
     r.type === 'master' || r.role === 'Main'
   );
 
-  // Get track details for expanded releases
+  // Get track details for all main releases to have complete metadata
   const trackQueries = useQueries({
-    queries: Array.from(expandedReleases).map(releaseId => ({
-      queryKey: ['release', releaseId],
+    queries: mainReleases.map((release: any) => ({
+      queryKey: ['release', release.id],
       queryFn: async () => {
-        const res = await fetch(`/api/discogs/release/${releaseId}`);
+        const res = await fetch(`/api/discogs/release/${release.id}`);
         if (!res.ok) throw new Error('Failed to fetch release details');
         return res.json();
       },
@@ -66,7 +66,7 @@ export function ReleasesWithTracks() {
   };
 
   const getTrackData = (releaseId: string) => {
-    const queryIndex = Array.from(expandedReleases).indexOf(releaseId);
+    const queryIndex = mainReleases.findIndex((r: any) => r.id === releaseId);
     return queryIndex >= 0 ? trackQueries[queryIndex] : null;
   };
 
@@ -128,6 +128,12 @@ export function ReleasesWithTracks() {
             const isExpanded = expandedReleases.has(release.id);
             const trackQuery = getTrackData(release.id);
             
+            // Use detailed data if available, fallback to basic data
+            const detailedData = trackQuery?.data;
+            const displayYear = detailedData?.displayYear || release.year || 'Unknown';
+            const displayLabel = detailedData?.displayLabel || release.label || 'Unknown';
+            const displayFormat = detailedData?.displayFormat || release.format || 'Unknown';
+            
             return (
               <Collapsible key={release.id} open={isExpanded} onOpenChange={() => toggleExpanded(release.id)}>
                 <div className="border rounded-lg">
@@ -139,10 +145,10 @@ export function ReleasesWithTracks() {
                     />
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <div>
+                        <div className="flex-1 min-w-0 mr-4">
                           <p className="font-medium">{release.title}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {release.year} • {release.label} • {release.format}
+                          <p className="text-sm text-muted-foreground break-words">
+                            {displayYear} • {displayLabel} • {displayFormat}
                           </p>
                         </div>
                         <CollapsibleTrigger asChild>

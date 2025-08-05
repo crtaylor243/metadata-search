@@ -48,3 +48,167 @@ Error: Route "/api/discogs/release/[id]" used `params.id`. `params` should be aw
  GET /api/discogs/release/2594070 200 in 570ms
  GET /api/discogs/release/1480761 200 in 719ms
  GET / 200 in 85ms
+ GET /api/discogs/search?q=90%20day%20men&type=artist 200 in 243ms
+Error: Route "/api/discogs/artist/[id]/releases" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/discogs/artist/[id]/releases/route.ts:7:56)
+   5 |   { params }: { params: { id: string } }
+   6 | ) {
+>  7 |   const url = `https://api.discogs.com/artists/${params.id}/releases?per_page=100&sort=year`;
+     |                                                        ^
+   8 |   
+   9 |   try {
+  10 |     const response = await fetch(url, {
+ GET /api/discogs/artist/432771/releases 200 in 231ms
+ ✓ Compiled in 42ms
+ ✓ Compiled in 31ms
+ ✓ Compiled in 31ms
+Error: Route "/api/discogs/release/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/discogs/release/[id]/route.ts:7:57)
+   5 |   { params }: { params: { id: string } }
+   6 | ) {
+>  7 |   const url = `https://api.discogs.com/releases/${params.id}`;
+     |                                                         ^
+   8 |   
+   9 |   try {
+  10 |     const response = await fetch(url, {
+Error: Route "/api/discogs/release/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/discogs/release/[id]/route.ts:7:57)
+   5 |   { params }: { params: { id: string } }
+   6 | ) {
+>  7 |   const url = `https://api.discogs.com/releases/${params.id}`;
+     |                                                         ^
+   8 |   
+   9 |   try {
+  10 |     const response = await fetch(url, {
+Error: Route "/api/discogs/release/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/discogs/release/[id]/route.ts:7:57)
+   5 |   { params }: { params: { id: string } }
+   6 | ) {
+>  7 |   const url = `https://api.discogs.com/releases/${params.id}`;
+     |                                                         ^
+   8 |   
+   9 |   try {
+  10 |     const response = await fetch(url, {
+Error: Route "/api/discogs/release/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/discogs/release/[id]/route.ts:7:57)
+   5 |   { params }: { params: { id: string } }
+   6 | ) {
+>  7 |   const url = `https://api.discogs.com/releases/${params.id}`;
+     |                                                         ^
+   8 |   
+   9 |   try {
+  10 |     const response = await fetch(url, {
+Error: Route "/api/discogs/release/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/discogs/release/[id]/route.ts:7:57)
+   5 |   { params }: { params: { id: string } }
+   6 | ) {
+>  7 |   const url = `https://api.discogs.com/releases/${params.id}`;
+     |                                                         ^
+   8 |   
+   9 |   try {
+  10 |     const response = await fetch(url, {
+Error: Route "/api/discogs/release/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/discogs/release/[id]/route.ts:7:57)
+   5 |   { params }: { params: { id: string } }
+   6 | ) {
+>  7 |   const url = `https://api.discogs.com/releases/${params.id}`;
+     |                                                         ^
+   8 |   
+   9 |   try {
+  10 |     const response = await fetch(url, {
+ GET /api/discogs/release/2594070 200 in 507ms
+ GET /api/discogs/release/3216424 200 in 530ms
+ GET /api/discogs/release/1766869 200 in 546ms
+Error: Route "/api/discogs/release/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/discogs/release/[id]/route.ts:7:57)
+   5 |   { params }: { params: { id: string } }
+   6 | ) {
+>  7 |   const url = `https://api.discogs.com/releases/${params.id}`;
+     |                                                         ^
+   8 |   
+   9 |   try {
+  10 |     const response = await fetch(url, {
+Error: Route "/api/discogs/release/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/discogs/release/[id]/route.ts:7:57)
+   5 |   { params }: { params: { id: string } }
+   6 | ) {
+>  7 |   const url = `https://api.discogs.com/releases/${params.id}`;
+     |                                                         ^
+   8 |   
+   9 |   try {
+  10 |     const response = await fetch(url, {
+ GET /api/discogs/release/1480761 200 in 620ms
+Error: Route "/api/discogs/release/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/discogs/release/[id]/route.ts:7:57)
+   5 |   { params }: { params: { id: string } }
+   6 | ) {
+>  7 |   const url = `https://api.discogs.com/releases/${params.id}`;
+     |                                                         ^
+   8 |   
+   9 |   try {
+  10 |     const response = await fetch(url, {
+Error: Route "/api/discogs/release/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/discogs/release/[id]/route.ts:7:57)
+   5 |   { params }: { params: { id: string } }
+   6 | ) {
+>  7 |   const url = `https://api.discogs.com/releases/${params.id}`;
+     |                                                         ^
+   8 |   
+   9 |   try {
+  10 |     const response = await fetch(url, {
+ GET /api/discogs/release/983043 200 in 280ms
+Error: Route "/api/discogs/release/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/discogs/release/[id]/route.ts:7:57)
+   5 |   { params }: { params: { id: string } }
+   6 | ) {
+>  7 |   const url = `https://api.discogs.com/releases/${params.id}`;
+     |                                                         ^
+   8 |   
+   9 |   try {
+  10 |     const response = await fetch(url, {
+ GET /api/discogs/release/30618199 200 in 344ms
+Error: Route "/api/discogs/release/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/discogs/release/[id]/route.ts:7:57)
+   5 |   { params }: { params: { id: string } }
+   6 | ) {
+>  7 |   const url = `https://api.discogs.com/releases/${params.id}`;
+     |                                                         ^
+   8 |   
+   9 |   try {
+  10 |     const response = await fetch(url, {
+ GET /api/discogs/release/184709 200 in 414ms
+Error: Route "/api/discogs/release/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/discogs/release/[id]/route.ts:7:57)
+   5 |   { params }: { params: { id: string } }
+   6 | ) {
+>  7 |   const url = `https://api.discogs.com/releases/${params.id}`;
+     |                                                         ^
+   8 |   
+   9 |   try {
+  10 |     const response = await fetch(url, {
+ GET /api/discogs/release/32674569 200 in 207ms
+Error: Route "/api/discogs/release/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/discogs/release/[id]/route.ts:7:57)
+   5 |   { params }: { params: { id: string } }
+   6 | ) {
+>  7 |   const url = `https://api.discogs.com/releases/${params.id}`;
+     |                                                         ^
+   8 |   
+   9 |   try {
+  10 |     const response = await fetch(url, {
+ GET /api/discogs/release/3366850 200 in 241ms
+Error: Route "/api/discogs/release/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/discogs/release/[id]/route.ts:7:57)
+   5 |   { params }: { params: { id: string } }
+   6 | ) {
+>  7 |   const url = `https://api.discogs.com/releases/${params.id}`;
+     |                                                         ^
+   8 |   
+   9 |   try {
+  10 |     const response = await fetch(url, {
+ GET /api/discogs/release/659703 200 in 277ms
+ GET /api/discogs/release/184710 200 in 876ms
+ GET /api/discogs/release/184711 200 in 1575ms
+ GET /api/discogs/release/1770636 200 in 835ms
+ GET /api/discogs/release/1871499 200 in 1879ms
+ GET /api/discogs/release/108312 200 in 1601ms

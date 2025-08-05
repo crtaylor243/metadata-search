@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSelectionStore } from '@/stores/selection-store';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -51,6 +52,18 @@ export function ArtistReleases() {
     r.type === 'master' || r.role === 'Main'
   );
   
+  // Auto-select all main releases when they load
+  useEffect(() => {
+    if (mainReleases.length > 0 && selectedReleases.length === 0) {
+      mainReleases.forEach((release: any) => {
+        const isAlreadySelected = selectedReleases.some(r => r.id === release.id);
+        if (!isAlreadySelected) {
+          toggleRelease(release);
+        }
+      });
+    }
+  }, [mainReleases, selectedReleases, toggleRelease]);
+  
   return (
     <Card>
       <CardHeader>
@@ -79,11 +92,6 @@ export function ArtistReleases() {
                     {release.year} • {release.label} • {release.format}
                   </p>
                 </div>
-                {release.stats && (
-                  <Badge variant="outline">
-                    {release.stats.community?.in_collection || 0} collected
-                  </Badge>
-                )}
               </div>
             );
           })}

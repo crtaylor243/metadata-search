@@ -28,6 +28,18 @@ export function SearchForm() {
     },
     enabled: !!searchTerm
   });
+
+  // Fetch artist details including profile image when artist is selected
+  const { data: artistDetails, isLoading: artistLoading } = useQuery({
+    queryKey: ['artist', selectedArtist?.id],
+    queryFn: async () => {
+      if (!selectedArtist?.id) return null;
+      const res = await fetch(`/api/discogs/artist/${selectedArtist.id}`);
+      if (!res.ok) throw new Error('Failed to fetch artist details');
+      return res.json();
+    },
+    enabled: !!selectedArtist?.id
+  });
   
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,22 +66,23 @@ export function SearchForm() {
   
   return (
     <div className="space-y-6">
-      {/* Search Input Section */}
-      <div className="space-y-2">
-        <form onSubmit={handleSearch} className="space-y-3">
-          {/* Search Input */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search for an artist"
-              className="pl-10 pr-4 h-12 text-base border-2 focus:border-primary transition-colors w-full"
-            />
-          </div>
-          
-          {/* Search Buttons */}
-          <div className="flex gap-2">
+      {/* Search Input Section - Hide when artist is selected */}
+      {!selectedArtist && (
+        <div className="space-y-2">
+          <form onSubmit={handleSearch} className="space-y-3">
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search for an artist"
+                className="pl-10 pr-4 h-12 text-base border-2 focus:border-primary transition-colors w-full"
+              />
+            </div>
+            
+            {/* Search Buttons */}
+            <div className="flex gap-2">
             <Button 
               type="submit" 
               disabled={isLoading || !query.trim()}
@@ -88,7 +101,7 @@ export function SearchForm() {
                 </>
               )}
             </Button>
-            {(searchTerm || selectedArtist) && (
+            {searchTerm && (
               <Button 
                 type="button" 
                 variant="outline" 
@@ -105,6 +118,8 @@ export function SearchForm() {
         </form>
         
       </div>
+      )}
+
       
       {/* Error State */}
       {error && (
@@ -118,21 +133,50 @@ export function SearchForm() {
       
       {/* Selected Artist Card */}
       {selectedArtist && (
-        <div className="relative overflow-hidden rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-6 shadow-lg">
+        <div 
+          className="relative overflow-hidden rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-6 shadow-lg cursor-pointer hover:shadow-xl hover:border-primary/30 transition-all duration-200"
+          onClick={() => window.open(`https://www.discogs.com/artist/${selectedArtist.id}`, '_blank')}
+          title="Click to view on Discogs"
+        >
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
           <div className="relative">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-start gap-4">
-                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="w-7 h-7 text-primary" />
+                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                  {artistLoading ? (
+                    <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                  ) : artistDetails?.profileImage ? (
+                    <img
+                      src={artistDetails.profileImage.uri150 || artistDetails.profileImage.uri}
+                      alt={selectedArtist.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback to User icon if image fails to load
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                      }}
+                    />
+                  ) : null}
+                  <User className={`w-7 h-7 text-primary ${artistDetails?.profileImage ? 'hidden' : ''}`} />
                 </div>
                 <div>
                   <div className="mb-1">
                     <h3 className="text-xl font-bold">{selectedArtist.title}</h3>
+                    {artistDetails?.realname && artistDetails.realname !== selectedArtist.title && (
+                      <p className="text-sm text-muted-foreground font-medium">
+                        {artistDetails.realname}
+                      </p>
+                    )}
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Artist ID: {selectedArtist.id}
-                  </p>
+                  {artistDetails?.profile ? (
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {artistDetails.profile}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Artist ID: {selectedArtist.id}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

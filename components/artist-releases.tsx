@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSelectionStore } from '@/stores/selection-store';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -11,6 +11,7 @@ import { Loader2, Download } from 'lucide-react';
 
 export function ArtistReleases() {
   const { selectedArtist, selectedReleases, toggleRelease } = useSelectionStore();
+  const autoSelectedRef = useRef<string | null>(null);
   
   const { data, isLoading, error } = useQuery({
     queryKey: ['releases', selectedArtist?.id],
@@ -22,6 +23,25 @@ export function ArtistReleases() {
     },
     enabled: !!selectedArtist?.id
   });
+
+  const releases = data?.releases || [];
+  const mainReleases = releases.filter((r: any) => 
+    r.type === 'master' || r.role === 'Main'
+  );
+  
+  // Auto-select all main releases when they load (temporarily disabled)
+  // useEffect(() => {
+  //   const artistId = selectedArtist?.id;
+  //   if (mainReleases.length > 0 && artistId && autoSelectedRef.current !== artistId) {
+  //     // Mark this artist as auto-selected
+  //     autoSelectedRef.current = artistId;
+  //     
+  //     // Auto-select all main releases
+  //     mainReleases.forEach((release: any) => {
+  //       toggleRelease(release);
+  //     });
+  //   }
+  // }, [mainReleases, selectedArtist?.id, toggleRelease]);
   
   if (!selectedArtist) return null;
   
@@ -46,23 +66,6 @@ export function ArtistReleases() {
       </Card>
     );
   }
-  
-  const releases = data?.releases || [];
-  const mainReleases = releases.filter((r: any) => 
-    r.type === 'master' || r.role === 'Main'
-  );
-  
-  // Auto-select all main releases when they load
-  useEffect(() => {
-    if (mainReleases.length > 0 && selectedReleases.length === 0) {
-      mainReleases.forEach((release: any) => {
-        const isAlreadySelected = selectedReleases.some(r => r.id === release.id);
-        if (!isAlreadySelected) {
-          toggleRelease(release);
-        }
-      });
-    }
-  }, [mainReleases, selectedReleases, toggleRelease]);
   
   return (
     <Card>
@@ -98,9 +101,42 @@ export function ArtistReleases() {
         </div>
         
         <div className="mt-4 pt-4 border-t">
-          <p className="text-sm text-muted-foreground">
-            {selectedReleases.length} releases selected for export
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              {selectedReleases.length} releases selected for export
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  mainReleases.forEach((release: any) => {
+                    const isSelected = selectedReleases.some(r => r.id === release.id);
+                    if (!isSelected) {
+                      toggleRelease(release);
+                    }
+                  });
+                }}
+                disabled={selectedReleases.length === mainReleases.length}
+              >
+                Select All
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  selectedReleases.forEach((release: any) => {
+                    if (mainReleases.some(r => r.id === release.id)) {
+                      toggleRelease(release);
+                    }
+                  });
+                }}
+                disabled={selectedReleases.length === 0}
+              >
+                Clear All
+              </Button>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

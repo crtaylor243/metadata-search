@@ -135,26 +135,14 @@ export function SearchForm() {
                   <User className="w-7 h-7 text-primary" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="mb-1">
                     <h3 className="text-xl font-bold">{selectedArtist.title}</h3>
-                    <Badge variant="default" className="gap-1">
-                      <CheckCircle2 className="w-3 h-3" />
-                      Selected
-                    </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Artist ID: {selectedArtist.id}
                   </p>
                 </div>
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setIsArtistSelected(false)}
-                className="hover:bg-background/80"
-              >
-                Change Artist
-              </Button>
             </div>
           </div>
         </div>

@@ -29,7 +29,7 @@ export function TrackDetails() {
         addTrackDetails(selectedReleases[index].id, query.data);
       }
     });
-  }, [queries, selectedReleases, addTrackDetails]);
+  }, [queries, selectedReleases]);
   
   const isLoading = queries.some(q => q.isLoading);
   const loadedCount = queries.filter(q => q.isSuccess).length;

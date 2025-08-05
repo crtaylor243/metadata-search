@@ -1,11 +1,9 @@
 'use client';
 
 import { SearchForm } from '@/components/search-form';
-import { ArtistReleases } from '@/components/artist-releases';
-import { TrackDetails } from '@/components/track-details';
+import { ReleasesWithTracks } from '@/components/releases-with-tracks';
 import { ExportButton } from '@/components/export-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSelectionStore } from '@/stores/selection-store';
 
 export default function Home() {
@@ -34,8 +32,9 @@ export default function Home() {
             </CardContent>
           </Card>
           
+          {/* Export Data - Desktop only */}
           {selectedArtist && (
-            <Card className="mt-6">
+            <Card className="mt-6 hidden lg:block">
               <CardHeader>
                 <CardTitle>Export Data</CardTitle>
                 <CardDescription>
@@ -51,18 +50,7 @@ export default function Home() {
         
         <div className="lg:col-span-2">
           {selectedArtist ? (
-            <Tabs defaultValue="releases" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="releases">Select Releases</TabsTrigger>
-                <TabsTrigger value="tracks">Track Details</TabsTrigger>
-              </TabsList>
-              <TabsContent value="releases">
-                <ArtistReleases />
-              </TabsContent>
-              <TabsContent value="tracks">
-                <TrackDetails />
-              </TabsContent>
-            </Tabs>
+            <ReleasesWithTracks />
           ) : (
             <Card>
               <CardContent className="py-16">
@@ -74,6 +62,21 @@ export default function Home() {
           )}
         </div>
       </div>
+      
+      {/* Export Data - Mobile only */}
+      {selectedArtist && (
+        <Card className="mt-6 lg:hidden">
+          <CardHeader>
+            <CardTitle>Export Data</CardTitle>
+            <CardDescription>
+              Download selected releases as Excel
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ExportButton />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

@@ -1,0 +1,50 @@
+
+> music-metadata-app@0.1.0 dev
+> next dev --turbopack
+
+   ▲ Next.js 15.4.5 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://10.0.0.248:3000
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 594ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1299ms
+ GET / 200 in 1507ms
+ GET / 200 in 30ms
+ ✓ Compiled /api/discogs/search in 115ms
+ GET /api/discogs/search?q=90%20day%20men&type=artist 200 in 409ms
+ ✓ Compiled /api/discogs/artist/[id]/releases in 83ms
+Error: Route "/api/discogs/artist/[id]/releases" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/discogs/artist/[id]/releases/route.ts:7:56)
+   5 |   { params }: { params: { id: string } }
+   6 | ) {
+>  7 |   const url = `https://api.discogs.com/artists/${params.id}/releases?per_page=100&sort=year`;
+     |                                                        ^
+   8 |   
+   9 |   try {
+  10 |     const response = await fetch(url, {
+ GET /api/discogs/artist/432771/releases 200 in 516ms
+ ✓ Compiled /api/discogs/release/[id] in 76ms
+Error: Route "/api/discogs/release/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/discogs/release/[id]/route.ts:7:57)
+   5 |   { params }: { params: { id: string } }
+   6 | ) {
+>  7 |   const url = `https://api.discogs.com/releases/${params.id}`;
+     |                                                         ^
+   8 |   
+   9 |   try {
+  10 |     const response = await fetch(url, {
+Error: Route "/api/discogs/release/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/discogs/release/[id]/route.ts:7:57)
+   5 |   { params }: { params: { id: string } }
+   6 | ) {
+>  7 |   const url = `https://api.discogs.com/releases/${params.id}`;
+     |                                                         ^
+   8 |   
+   9 |   try {
+  10 |     const response = await fetch(url, {
+ GET /api/discogs/release/2594070 200 in 570ms
+ GET /api/discogs/release/1480761 200 in 719ms
+ GET / 200 in 85ms

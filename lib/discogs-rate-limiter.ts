@@ -5,14 +5,28 @@ interface RateLimitInfo {
   resetTime: number;
 }
 
+// Configuration for rate limiting
+const RATE_LIMIT_CONFIG = {
+  // Stay at or below 85% of the rate limit
+  maxUsagePercent: 0.85,
+  // Default limits (will be updated from API headers)
+  defaultLimit: 60, // Discogs authenticated limit
+  // Minimum delay between requests (milliseconds)
+  minDelayMs: 200,
+  // Safety buffer for timing calculations
+  timingBufferMs: 500
+};
+
 class DiscogsRateLimiter {
   private static instance: DiscogsRateLimiter;
   private currentLimits: RateLimitInfo = {
-    limit: 60, // Default for authenticated requests
+    limit: RATE_LIMIT_CONFIG.defaultLimit,
     used: 0,
-    remaining: 60,
+    remaining: RATE_LIMIT_CONFIG.defaultLimit,
     resetTime: Date.now() + 60000
   };
+  
+  private lastRequestTime: number = 0;
   private requestQueue: Array<() => Promise<void>> = [];
   private isProcessing = false;
 
@@ -39,25 +53,56 @@ class DiscogsRateLimiter {
     };
   }
 
-  // Calculate delay needed before next request
+  // Calculate delay needed to stay at 85% of rate limit
   private calculateDelay(): number {
+    const now = Date.now();
+    const timeSinceLastRequest = now - this.lastRequestTime;
+    
+    // If we don't have current rate limit info, use conservative defaults
     if (this.currentLimits.remaining <= 0) {
       // No requests remaining, wait until reset
-      return Math.max(0, this.currentLimits.resetTime - Date.now());
+      const timeUntilReset = Math.max(0, this.currentLimits.resetTime - now);
+      console.log(`Rate limit exhausted, waiting ${timeUntilReset}ms until reset`);
+      return timeUntilReset + RATE_LIMIT_CONFIG.timingBufferMs;
     }
     
-    if (this.currentLimits.remaining <= 5) {
-      // Very few remaining, add extra delay
-      return 2000;
+    // Calculate 85% threshold
+    const maxAllowedUsage = Math.floor(this.currentLimits.limit * RATE_LIMIT_CONFIG.maxUsagePercent);
+    const currentUsagePercent = this.currentLimits.used / this.currentLimits.limit;
+    
+    console.log(`Rate limit status: ${this.currentLimits.used}/${this.currentLimits.limit} (${Math.round(currentUsagePercent * 100)}%), target max: ${maxAllowedUsage} (85%)`);
+    
+    // If we're approaching 85% limit, calculate required spacing
+    if (this.currentLimits.used >= maxAllowedUsage) {
+      // We're at or above 85%, need to wait for reset window
+      const timeUntilReset = Math.max(0, this.currentLimits.resetTime - now);
+      const delayForSafeReset = Math.max(timeUntilReset * 0.1, RATE_LIMIT_CONFIG.minDelayMs * 3);
+      
+      console.log(`Above 85% limit, using conservative delay: ${delayForSafeReset}ms`);
+      return delayForSafeReset;
     }
     
-    if (this.currentLimits.remaining <= 10) {
-      // Few remaining, add moderate delay
-      return 1000;
+    // Calculate optimal spacing to stay under 85% for the remainder of the window
+    const timeRemainingInWindow = Math.max(0, this.currentLimits.resetTime - now);
+    const requestsRemainingIn85Percent = Math.max(0, maxAllowedUsage - this.currentLimits.used);
+    
+    if (requestsRemainingIn85Percent > 0 && timeRemainingInWindow > 0) {
+      // Distribute remaining requests evenly across time window
+      const optimalSpacing = timeRemainingInWindow / requestsRemainingIn85Percent;
+      const recommendedDelay = Math.max(optimalSpacing, RATE_LIMIT_CONFIG.minDelayMs);
+      
+      // Ensure minimum time since last request
+      const timeSinceLastReq = now - this.lastRequestTime;
+      const additionalDelay = Math.max(0, recommendedDelay - timeSinceLastReq);
+      
+      console.log(`Optimal spacing: ${Math.round(optimalSpacing)}ms, recommended delay: ${Math.round(recommendedDelay)}ms, additional needed: ${Math.round(additionalDelay)}ms`);
+      return additionalDelay;
     }
     
-    // Normal operation, minimal delay
-    return 100;
+    // Fallback to minimum delay
+    const minimumDelay = Math.max(0, RATE_LIMIT_CONFIG.minDelayMs - timeSinceLastRequest);
+    console.log(`Using minimum delay: ${minimumDelay}ms`);
+    return minimumDelay;
   }
 
   // Execute a request with rate limiting
@@ -67,8 +112,12 @@ class DiscogsRateLimiter {
         try {
           const delay = this.calculateDelay();
           if (delay > 0) {
+            console.log(`Applying delay of ${delay}ms before request`);
             await new Promise(resolve => setTimeout(resolve, delay));
           }
+          
+          // Record request time
+          this.lastRequestTime = Date.now();
           
           const response = await requestFn();
           
@@ -106,7 +155,16 @@ class DiscogsRateLimiter {
 
   // Get current rate limit status
   getRateLimitStatus() {
-    return { ...this.currentLimits };
+    const currentUsagePercent = this.currentLimits.used / this.currentLimits.limit;
+    const maxAllowedUsage = Math.floor(this.currentLimits.limit * RATE_LIMIT_CONFIG.maxUsagePercent);
+    
+    return { 
+      ...this.currentLimits,
+      usagePercent: currentUsagePercent,
+      maxAllowedUsage,
+      isNearLimit: this.currentLimits.used >= maxAllowedUsage,
+      requestsUntil85Percent: Math.max(0, maxAllowedUsage - this.currentLimits.used)
+    };
   }
 }
 

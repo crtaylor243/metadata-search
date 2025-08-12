@@ -5,10 +5,12 @@ import { ReleasesWithTracks } from '@/components/releases-with-tracks';
 import { ExportButton } from '@/components/export-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X, User, Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { X, User, Loader2, Music, Tag } from 'lucide-react';
 import { useSelectionStore } from '@/stores/selection-store';
 import { useHistoryStore } from '@/stores/history-store';
 import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 
 // Component to display recent search as an artist card
 function RecentSearchCard({ search, onSelect, onRemove }: { search: any; onSelect: (artist: any) => void; onRemove: (id: string) => void }) {
@@ -97,13 +99,18 @@ function RecentSearchCard({ search, onSelect, onRemove }: { search: any; onSelec
 export default function Home() {
   const { selectedArtist, clearSelection, setSelectedArtist } = useSelectionStore();
   const { getRecentSearches, removeSearch } = useHistoryStore();
+  const [recentSearches, setRecentSearches] = useState<any[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
   
   const handleClearSelection = () => {
     clearSelection();
   };
 
-  // Get recent searches
-  const recentSearches = getRecentSearches(5); // Show last 5 searches
+  // Get recent searches only on client-side to avoid hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+    setRecentSearches(getRecentSearches(5));
+  }, [getRecentSearches]);
   
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
@@ -114,36 +121,108 @@ export default function Home() {
         </p>
       </div>
       
-      {/* Search Artist - Full width at top */}
-      <Card className="mb-6">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Search Artist</CardTitle>
-            {selectedArtist && (
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="sm"
-                onClick={handleClearSelection}
-                className="border-2 hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive transition-all"
-                title="Clear selection and search again"
-              >
-                <X className="w-4 h-4 mr-2" />
-                Search for a different artist
-              </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          <SearchForm />
-        </CardContent>
-      </Card>
+      {/* Main Tabs */}
+      <Tabs defaultValue="artist" className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="artist" className="flex items-center gap-2">
+            <Music className="w-4 h-4" />
+            Artist Search
+          </TabsTrigger>
+          <TabsTrigger value="label" className="flex items-center gap-2">
+            <Tag className="w-4 h-4" />
+            Label Search
+          </TabsTrigger>
+        </TabsList>
 
-      {selectedArtist ? (
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Export Data - Desktop sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="hidden lg:block">
+        <TabsContent value="artist">
+          <Card className="mb-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Search Artist</CardTitle>
+                {selectedArtist && (
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleClearSelection}
+                    className="border-2 hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive transition-all"
+                    title="Clear selection and search again"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Search for a different artist
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <SearchForm />
+            </CardContent>
+          </Card>
+
+          {selectedArtist ? (
+            <div className="grid gap-6 lg:grid-cols-3">
+              {/* Export Data - Desktop sidebar */}
+              <div className="lg:col-span-1">
+                <Card className="hidden lg:block">
+                  <CardHeader>
+                    <CardTitle>Export Data</CardTitle>
+                    <CardDescription>
+                      Download selected releases as spreadsheet
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ExportButton />
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Releases & Tracks - Takes remaining space */}
+              <div className="lg:col-span-2">
+                <ReleasesWithTracks />
+              </div>
+            </div>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Searches</CardTitle>
+                <CardDescription>
+                  {isMounted && recentSearches.length > 0 ? 'Click on any artist to select them again' : 'Your search history will appear here'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isMounted ? (
+                  recentSearches.length > 0 ? (
+                    <div className="space-y-4">
+                      {recentSearches.map((search) => (
+                        <RecentSearchCard 
+                          key={search.id} 
+                          search={search} 
+                          onSelect={setSelectedArtist}
+                          onRemove={removeSearch}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-8">
+                      <p className="text-center text-muted-foreground">
+                        Search for an artist to begin
+                      </p>
+                    </div>
+                  )
+                ) : (
+                  <div className="py-8">
+                    <p className="text-center text-muted-foreground">
+                      Loading search history...
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+          
+          {/* Export Data - Mobile full width */}
+          {selectedArtist && (
+            <Card className="mt-6 lg:hidden">
               <CardHeader>
                 <CardTitle>Export Data</CardTitle>
                 <CardDescription>
@@ -154,58 +233,27 @@ export default function Home() {
                 <ExportButton />
               </CardContent>
             </Card>
-          </div>
-          
-          {/* Releases & Tracks - Takes remaining space */}
-          <div className="lg:col-span-2">
-            <ReleasesWithTracks />
-          </div>
-        </div>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Searches</CardTitle>
-            <CardDescription>
-              {recentSearches.length > 0 ? 'Click on any artist to select them again' : 'Your search history will appear here'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {recentSearches.length > 0 ? (
-              <div className="space-y-4">
-                {recentSearches.map((search) => (
-                  <RecentSearchCard 
-                    key={search.id} 
-                    search={search} 
-                    onSelect={setSelectedArtist}
-                    onRemove={removeSearch}
-                  />
-                ))}
-              </div>
-            ) : (
+          )}
+        </TabsContent>
+
+        <TabsContent value="label">
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Search Label</CardTitle>
+              <CardDescription>
+                Find record labels and view all their releases grouped by artist
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               <div className="py-8">
                 <p className="text-center text-muted-foreground">
-                  Search for an artist to begin
+                  Label search coming soon...
                 </p>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-      
-      {/* Export Data - Mobile full width */}
-      {selectedArtist && (
-        <Card className="mt-6 lg:hidden">
-          <CardHeader>
-            <CardTitle>Export Data</CardTitle>
-            <CardDescription>
-              Download selected releases as spreadsheet
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ExportButton />
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

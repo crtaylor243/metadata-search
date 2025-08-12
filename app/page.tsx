@@ -119,10 +119,7 @@ export default function Home() {
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Music Metadata Extractor</h1>
-        <p className="text-muted-foreground">
-          Extract detailed music metadata from Discogs for legal contract work
-        </p>
+        <h1 className="text-4xl font-bold mb-2">Discography Search</h1>
       </div>
       
       {/* Main Tabs */}
@@ -233,7 +230,7 @@ export default function Home() {
               <CardHeader>
                 <CardTitle>Recent Artist Searches</CardTitle>
                 <CardDescription>
-                  {isMounted && recentSearches.length > 0 ? 'Click on any artist to select them again' : 'Your artist search history will appear here'}
+                  {isMounted && recentSearches.length > 0 ? '' : 'Your artist search history will appear here'}
                 </CardDescription>
               </CardHeader>
               <CardContent>

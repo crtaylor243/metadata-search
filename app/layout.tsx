@@ -6,8 +6,8 @@ import { Providers } from "@/components/providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Music Metadata Extractor",
-  description: "Extract music metadata from Discogs for legal contracts",
+  title: "Discography Search",
+  description: "Search and explore artist and label discographies from Discogs",
 };
 
 export default function RootLayout({

@@ -166,9 +166,6 @@ export function LabelSearchForm() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Search Label</CardTitle>
-            <CardDescription>
-              Find record labels and view all their releases grouped by artist
-            </CardDescription>
             {selectedLabel && (
               <Button 
                 type="button" 
@@ -399,7 +396,7 @@ export function LabelSearchForm() {
           <CardHeader>
             <CardTitle>Recent Label Searches</CardTitle>
             <CardDescription>
-              {isMounted && recentSearches.length > 0 ? 'Click on any label to select them again' : 'Your label search history will appear here'}
+              {isMounted && recentSearches.length > 0 ? '' : 'Your label search history will appear here'}
             </CardDescription>
           </CardHeader>
           <CardContent>

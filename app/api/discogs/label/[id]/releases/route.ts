@@ -66,11 +66,22 @@ export async function GET(
     
     console.log(`Label ${id} - Final result: ${allReleases.length} total releases (before deduplication)`);
     
+    // First deduplicate by ID to prevent React key conflicts
+    const uniqueByIdReleases = allReleases.reduce((acc: any[], release: any) => {
+      if (!acc.some(r => r.id === release.id)) {
+        acc.push(release);
+      }
+      return acc;
+    }, []);
+    
+    console.log(`Label ${id} - After ID deduplication: ${uniqueByIdReleases.length} releases`);
+    
     // Calculate Shadow Catalog Number for sorting (moved up to use in deduplication)
     const calculateShadowCatalogNumber = (catno: string): string => {
       if (!catno) return 'ZZZZZZZZZZZZZZZ'; // Put empty catalog numbers at the end
       
-      let shadow = catno;
+      // If catalog number contains comma, use only the first one
+      let shadow = catno.includes(',') ? catno.split(',')[0].trim() : catno;
       
       // Step 1: Transform all lowercase letters to uppercase
       shadow = shadow.toUpperCase();
@@ -118,8 +129,8 @@ export async function GET(
       return result;
     };
     
-    // Deduplicate by Shadow Catalog Number ONLY
-    const uniqueByShadowCatnoReleases = allReleases.reduce((acc: any[], release: any) => {
+    // Then deduplicate by Shadow Catalog Number ONLY
+    const uniqueByShadowCatnoReleases = uniqueByIdReleases.reduce((acc: any[], release: any) => {
       const shadowCatno = calculateShadowCatalogNumber(release.catno || '');
       
       // Check if we already have a release with this Shadow Catalog Number
@@ -129,8 +140,8 @@ export async function GET(
       });
       
       if (!existing) {
-        // Find all releases with this same Shadow Catalog Number
-        const variants = allReleases.filter(r => {
+        // Find all releases with this same Shadow Catalog Number (from the ID-deduplicated set)
+        const variants = uniqueByIdReleases.filter(r => {
           const rShadowCatno = calculateShadowCatalogNumber(r.catno || '');
           return rShadowCatno === shadowCatno;
         });
@@ -162,7 +173,7 @@ export async function GET(
       return acc;
     }, []);
     
-    console.log(`Label ${id} - After Shadow Catalog Number deduplication: ${uniqueByShadowCatnoReleases.length} unique releases (${allReleases.length - uniqueByShadowCatnoReleases.length} variants removed)`);
+    console.log(`Label ${id} - After Shadow Catalog Number deduplication: ${uniqueByShadowCatnoReleases.length} unique releases (${uniqueByIdReleases.length - uniqueByShadowCatnoReleases.length} Shadow Catalog Number variants removed)`);
     
     // Analyze release types for debugging
     const releaseAnalysis = uniqueByShadowCatnoReleases.reduce((acc: any, release: any) => {

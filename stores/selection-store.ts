@@ -11,23 +11,35 @@ interface Release {
 
 interface SelectionStore {
   selectedArtist: any;
+  selectedLabel: any;
   selectedReleases: Release[];
   trackDetails: Map<string, any>;
   
   setSelectedArtist: (artist: any) => void;
+  setSelectedLabel: (label: any) => void;
   toggleRelease: (release: Release) => void;
   addTrackDetails: (releaseId: string, details: any) => void;
   clearSelection: () => void;
+  clearLabelSelection: () => void;
   getExportData: () => any;
 }
 
 export const useSelectionStore = create<SelectionStore>((set, get) => ({
   selectedArtist: null,
+  selectedLabel: null,
   selectedReleases: [],
   trackDetails: new Map(),
   
   setSelectedArtist: (artist) => set({ 
     selectedArtist: artist,
+    selectedLabel: null,
+    selectedReleases: [],
+    trackDetails: new Map()
+  }),
+  
+  setSelectedLabel: (label) => set({ 
+    selectedLabel: label,
+    selectedArtist: null,
     selectedReleases: [],
     trackDetails: new Map()
   }),
@@ -55,6 +67,13 @@ export const useSelectionStore = create<SelectionStore>((set, get) => ({
   
   clearSelection: () => set({
     selectedArtist: null,
+    selectedLabel: null,
+    selectedReleases: [],
+    trackDetails: new Map()
+  }),
+  
+  clearLabelSelection: () => set({
+    selectedLabel: null,
     selectedReleases: [],
     trackDetails: new Map()
   }),
@@ -63,6 +82,7 @@ export const useSelectionStore = create<SelectionStore>((set, get) => ({
     const state = get();
     return {
       artist: state.selectedArtist,
+      label: state.selectedLabel,
       releases: state.selectedReleases,
       trackDetails: state.trackDetails
     };

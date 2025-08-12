@@ -6,8 +6,11 @@ interface SearchHistory {
   query: string;
   timestamp: number;
   resultCount: number;
+  type?: 'artist' | 'label';
   artistName?: string;
   artistId?: string;
+  labelName?: string;
+  labelId?: string;
 }
 
 interface HistoryStore {
@@ -16,6 +19,8 @@ interface HistoryStore {
   removeSearch: (id: string) => void;
   clearHistory: () => void;
   getRecentSearches: (limit?: number) => SearchHistory[];
+  getRecentArtistSearches: (limit?: number) => SearchHistory[];
+  getRecentLabelSearches: (limit?: number) => SearchHistory[];
 }
 
 export const useHistoryStore = create<HistoryStore>()(
@@ -30,10 +35,13 @@ export const useHistoryStore = create<HistoryStore>()(
           timestamp: Date.now()
         };
         
-        // Remove duplicate searches for the same artist
-        const filtered = state.searches.filter(s => 
-          s.artistId !== search.artistId
-        );
+        // Remove duplicate searches for the same artist or label
+        const filtered = state.searches.filter(s => {
+          if (search.type === 'label' && search.labelId) {
+            return s.labelId !== search.labelId;
+          }
+          return s.artistId !== search.artistId;
+        });
         
         // Keep only last 50 searches
         const updated = [newSearch, ...filtered].slice(0, 50);
@@ -48,6 +56,18 @@ export const useHistoryStore = create<HistoryStore>()(
       
       getRecentSearches: (limit = 10) => {
         return get().searches.slice(0, limit);
+      },
+      
+      getRecentArtistSearches: (limit = 10) => {
+        return get().searches
+          .filter(s => !s.type || s.type === 'artist')
+          .slice(0, limit);
+      },
+      
+      getRecentLabelSearches: (limit = 10) => {
+        return get().searches
+          .filter(s => s.type === 'label')
+          .slice(0, limit);
       }
     }),
     {

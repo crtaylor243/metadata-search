@@ -1,6 +1,7 @@
 'use client';
 
 import { SearchForm } from '@/components/search-form';
+import { LabelSearchForm } from '@/components/label-search-form';
 import { ReleasesWithTracks } from '@/components/releases-with-tracks';
 import { ExportButton } from '@/components/export-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -98,7 +99,7 @@ function RecentSearchCard({ search, onSelect, onRemove }: { search: any; onSelec
 
 export default function Home() {
   const { selectedArtist, clearSelection, setSelectedArtist } = useSelectionStore();
-  const { getRecentSearches, removeSearch } = useHistoryStore();
+  const { getRecentArtistSearches, removeSearch } = useHistoryStore();
   const [recentSearches, setRecentSearches] = useState<any[]>([]);
   const [isMounted, setIsMounted] = useState(false);
   
@@ -109,8 +110,8 @@ export default function Home() {
   // Get recent searches only on client-side to avoid hydration mismatch
   useEffect(() => {
     setIsMounted(true);
-    setRecentSearches(getRecentSearches(5));
-  }, [getRecentSearches]);
+    setRecentSearches(getRecentArtistSearches(5));
+  }, [getRecentArtistSearches]);
   
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
@@ -184,9 +185,9 @@ export default function Home() {
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle>Recent Searches</CardTitle>
+                <CardTitle>Recent Artist Searches</CardTitle>
                 <CardDescription>
-                  {isMounted && recentSearches.length > 0 ? 'Click on any artist to select them again' : 'Your search history will appear here'}
+                  {isMounted && recentSearches.length > 0 ? 'Click on any artist to select them again' : 'Your artist search history will appear here'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -237,21 +238,7 @@ export default function Home() {
         </TabsContent>
 
         <TabsContent value="label">
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Search Label</CardTitle>
-              <CardDescription>
-                Find record labels and view all their releases grouped by artist
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="py-8">
-                <p className="text-center text-muted-foreground">
-                  Label search coming soon...
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <LabelSearchForm />
         </TabsContent>
       </Tabs>
     </div>

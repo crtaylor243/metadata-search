@@ -54,7 +54,8 @@ export function SearchForm() {
       query: searchTerm,
       resultCount: data?.results?.length || 0,
       artistName: artist.title,
-      artistId: artist.id
+      artistId: artist.id,
+      type: 'artist'
     });
   };
   

@@ -116,13 +116,21 @@ export const rateLimiter = DiscogsRateLimiter.getInstance();
 export async function fetchWithRateLimit(
   url: string, 
   options: RequestInit = {}, 
-  maxRetries = 3
+  maxRetries = 5
 ): Promise<Response> {
   let lastError: Error | null = null;
   
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      const response = await rateLimiter.executeRequest(() => fetch(url, options));
+      const response = await rateLimiter.executeRequest(() => fetch(url, {
+        ...options,
+        // Add timeout and keep-alive headers to prevent connection drops
+        signal: AbortSignal.timeout(30000), // 30 second timeout per request
+        headers: {
+          ...options.headers,
+          'Connection': 'keep-alive',
+        }
+      }));
       
       // If it's a 500 error, retry
       if (response.status === 500 && attempt < maxRetries) {
@@ -135,9 +143,20 @@ export async function fetchWithRateLimit(
       return response;
     } catch (error) {
       lastError = error as Error;
-      if (attempt < maxRetries) {
+      const isNetworkError = error instanceof Error && (
+        error.message.includes('ECONNRESET') ||
+        error.message.includes('ENOTFOUND') ||
+        error.message.includes('ETIMEDOUT') ||
+        error.message.includes('fetch failed') ||
+        error.name === 'AbortError'
+      );
+      
+      if (attempt < maxRetries && isNetworkError) {
+        const backoffTime = Math.min(Math.pow(2, attempt) * 1000, 10000); // Max 10 seconds
+        console.warn(`Network error (attempt ${attempt + 1}/${maxRetries + 1}): ${url} - ${error.message}. Retrying in ${backoffTime}ms...`);
+        await new Promise(resolve => setTimeout(resolve, backoffTime));
+      } else if (attempt < maxRetries) {
         console.warn(`API request failed (attempt ${attempt + 1}/${maxRetries + 1}): ${url}`, error);
-        // Exponential backoff for retries
         await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
       }
     }

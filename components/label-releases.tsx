@@ -53,6 +53,11 @@ function LabelReleaseItem({
                 {release.format && (
                   <span className="bg-muted px-2 py-1 rounded text-xs">
                     {release.format}
+                    {release.formatVariants && release.formatVariants.length > 1 && (
+                      <span className="ml-1 text-muted-foreground">
+                        (+{release.formatVariants.length - 1} formats)
+                      </span>
+                    )}
                   </span>
                 )}
                 {release.catno && (
@@ -148,6 +153,8 @@ export function LabelReleases() {
     },
     enabled: !!selectedLabel?.id
   });
+
+  console.log('LabelReleases render - selectedLabel:', !!selectedLabel, 'isLoading:', isLoading, 'data loaded:', !!data, 'releases count:', data?.releases?.length || 0);
 
   const releases = data?.releases || [];
   

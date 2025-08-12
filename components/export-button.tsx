@@ -13,28 +13,9 @@ export function ExportButton() {
   const { selectedArtist, selectedLabel, selectedReleases, trackDetails, toggleRelease } = useSelectionStore();
   const queryClient = useQueryClient();
   
-  // Get releases data to enable select all/clear all functionality
-  const { data: artistData } = useQuery({
-    queryKey: ['releases', selectedArtist?.id],
-    queryFn: async () => {
-      if (!selectedArtist?.id) return null;
-      const res = await fetch(`/api/discogs/artist/${selectedArtist.id}/releases`);
-      if (!res.ok) throw new Error('Failed to fetch releases');
-      return res.json();
-    },
-    enabled: !!selectedArtist?.id
-  });
-
-  const { data: labelData } = useQuery({
-    queryKey: ['label-releases', selectedLabel?.id],
-    queryFn: async () => {
-      if (!selectedLabel?.id) return null;
-      const res = await fetch(`/api/discogs/label/${selectedLabel.id}/releases`);
-      if (!res.ok) throw new Error('Failed to fetch label releases');
-      return res.json();
-    },
-    enabled: !!selectedLabel?.id
-  });
+  // Get releases data from the query cache (data should already be loaded by the respective components)
+  const artistData = queryClient.getQueryData(['releases', selectedArtist?.id]);
+  const labelData = queryClient.getQueryData(['label-releases', selectedLabel?.id]);
 
   const artistReleases = artistData?.releases || [];
   const labelReleases = labelData?.releases || [];
@@ -115,6 +96,8 @@ export function ExportButton() {
     }
   };
   
+  console.log('ExportButton render - selectedArtist:', !!selectedArtist, 'selectedLabel:', !!selectedLabel);
+  
   if (!selectedArtist && !selectedLabel) return null;
 
   return (
@@ -137,7 +120,23 @@ export function ExportButton() {
           variant="outline"
           size="sm"
           onClick={() => {
-            allAvailableReleases.forEach((release: any) => {
+            console.log('Select All clicked - allAvailableReleases count:', allAvailableReleases.length);
+            console.log('Select All clicked - selectedReleases count before:', selectedReleases.length);
+            console.log('artistData?.releases length:', artistData?.releases?.length || 0);
+            console.log('labelData?.releases length:', labelData?.releases?.length || 0);
+            
+            // Filter out releases that don't have valid IDs and deduplicate
+            const validReleases = allAvailableReleases.filter((release: any) => release && release.id);
+            const uniqueReleases = validReleases.reduce((acc: any[], release: any) => {
+              if (!acc.some(r => r.id === release.id)) {
+                acc.push(release);
+              }
+              return acc;
+            }, []);
+            
+            console.log('Valid unique releases count:', uniqueReleases.length);
+            
+            uniqueReleases.forEach((release: any) => {
               const isSelected = selectedReleases.some(r => r.id === release.id);
               if (!isSelected) {
                 toggleRelease(release);
@@ -147,7 +146,7 @@ export function ExportButton() {
           disabled={selectedReleases.length === allAvailableReleases.length}
           className="flex-1"
         >
-          Select All
+          Select All ({allAvailableReleases.length})
         </Button>
         <Button
           variant="outline"

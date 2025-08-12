@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useSelectionStore } from '@/stores/selection-store';
 import { useHistoryStore } from '@/stores/history-store';
 import { cn } from '@/lib/utils';
+import { parseDiscogsLinks } from '@/lib/discogs-links';
 
 // Component to display recent label search as a card
 function RecentLabelSearchCard({ search, onSelect, onRemove }: { search: any; onSelect: (label: any) => void; onRemove: (id: string) => void }) {
@@ -276,7 +277,7 @@ export function LabelSearchForm() {
                       </div>
                       {labelDetails?.profile ? (
                         <p className="text-sm text-muted-foreground leading-relaxed">
-                          {labelDetails.profile}
+                          {parseDiscogsLinks(labelDetails.profile)}
                         </p>
                       ) : (
                         <p className="text-sm text-muted-foreground">
@@ -349,17 +350,25 @@ export function LabelSearchForm() {
               >
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                      <Tag className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
+                    <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors overflow-hidden">
+                      {label.thumb ? (
+                        <img
+                          src={label.thumb}
+                          alt={label.title}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <Tag className={`w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors ${label.thumb ? 'hidden' : ''}`} />
                     </div>
                     <div>
                       <h3 className="font-semibold text-base group-hover:text-primary transition-colors">
                         {label.title}
                       </h3>
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline" className="text-xs">
-                          {label.type}
-                        </Badge>
                         <span className="text-xs text-muted-foreground">
                           ID: {label.id}
                         </span>

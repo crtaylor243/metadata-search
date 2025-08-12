@@ -10,6 +10,7 @@ import { Search, Loader2, X, Music, User, CheckCircle2, TrendingUp, AlertCircle 
 import { useSelectionStore } from '@/stores/selection-store';
 import { useHistoryStore } from '@/stores/history-store';
 import { cn } from '@/lib/utils';
+import { parseDiscogsLinks } from '@/lib/discogs-links';
 
 export function SearchForm() {
   const [query, setQuery] = useState('');
@@ -171,7 +172,7 @@ export function SearchForm() {
                   </div>
                   {artistDetails?.profile ? (
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      {artistDetails.profile}
+                      {parseDiscogsLinks(artistDetails.profile)}
                     </p>
                   ) : (
                     <p className="text-sm text-muted-foreground">
@@ -219,17 +220,25 @@ export function SearchForm() {
               >
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                      <Music className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
+                    <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors overflow-hidden">
+                      {artist.thumb ? (
+                        <img
+                          src={artist.thumb}
+                          alt={artist.title}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <Music className={`w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors ${artist.thumb ? 'hidden' : ''}`} />
                     </div>
                     <div>
                       <h3 className="font-semibold text-base group-hover:text-primary transition-colors">
                         {artist.title}
                       </h3>
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline" className="text-xs">
-                          {artist.type}
-                        </Badge>
                         <span className="text-xs text-muted-foreground">
                           ID: {artist.id}
                         </span>

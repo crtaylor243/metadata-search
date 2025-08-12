@@ -37,6 +37,20 @@ function LabelReleaseItem({
               checked={isSelected}
               onCheckedChange={onToggleSelection}
             />
+            <div className="w-12 h-12 rounded bg-muted flex items-center justify-center overflow-hidden shrink-0">
+              {release.thumb ? (
+                <img
+                  src={release.thumb}
+                  alt={release.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              <Music className={`w-5 h-5 text-muted-foreground ${release.thumb ? 'hidden' : ''}`} />
+            </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-medium truncate">

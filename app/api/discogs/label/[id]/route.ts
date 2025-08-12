@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { fetchWithRateLimit } from '@/lib/discogs-rate-limiter';
 
 export async function GET(
   request: NextRequest,
@@ -8,7 +9,7 @@ export async function GET(
   const url = `https://api.discogs.com/labels/${id}`;
   
   try {
-    const response = await fetch(url, {
+    const response = await fetchWithRateLimit(url, {
       headers: {
         'Authorization': `Discogs token=${process.env.DISCOGS_TOKEN}`,
         'User-Agent': 'MusicMetadataApp/1.0'

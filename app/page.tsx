@@ -2,6 +2,7 @@
 
 import { SearchForm } from '@/components/search-form';
 import { LabelSearchForm } from '@/components/label-search-form';
+import { LabelReleases } from '@/components/label-releases';
 import { ReleasesWithTracks } from '@/components/releases-with-tracks';
 import { ExportButton } from '@/components/export-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -98,7 +99,7 @@ function RecentSearchCard({ search, onSelect, onRemove }: { search: any; onSelec
 }
 
 export default function Home() {
-  const { selectedArtist, clearSelection, setSelectedArtist } = useSelectionStore();
+  const { selectedArtist, selectedLabel, clearSelection, setSelectedArtist } = useSelectionStore();
   const { getRecentArtistSearches, removeSearch } = useHistoryStore();
   const [recentSearches, setRecentSearches] = useState<any[]>([]);
   const [isMounted, setIsMounted] = useState(false);
@@ -239,6 +240,45 @@ export default function Home() {
 
         <TabsContent value="label">
           <LabelSearchForm />
+          
+          {selectedLabel ? (
+            <div className="grid gap-6 lg:grid-cols-3">
+              {/* Export Data - Desktop sidebar */}
+              <div className="lg:col-span-1">
+                <Card className="hidden lg:block">
+                  <CardHeader>
+                    <CardTitle>Export Data</CardTitle>
+                    <CardDescription>
+                      Download selected releases as spreadsheet
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ExportButton />
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Label Releases - Takes remaining space */}
+              <div className="lg:col-span-2">
+                <LabelReleases />
+              </div>
+            </div>
+          ) : null}
+          
+          {/* Export Data - Mobile full width */}
+          {selectedLabel && (
+            <Card className="mt-6 lg:hidden">
+              <CardHeader>
+                <CardTitle>Export Data</CardTitle>
+                <CardDescription>
+                  Download selected releases as spreadsheet
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ExportButton />
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>

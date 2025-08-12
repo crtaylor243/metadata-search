@@ -1,7 +1,8 @@
 import * as XLSX from 'xlsx';
 
 export function exportToSpreadsheet(data: {
-  artist: any;
+  artist?: any;
+  label?: any;
   releases: any[];
   trackDetails: Map<string, any>;
 }) {
@@ -25,7 +26,7 @@ export function exportToSpreadsheet(data: {
           : '';
         
         contractData.push({
-          'Artist': data.artist.title,
+          'Artist': release.artist || (data.artist?.title) || 'Unknown',
           'Album': albumWithFormat,
           'Recording Title': track.title,
           'Control': writers
@@ -40,7 +41,8 @@ export function exportToSpreadsheet(data: {
   
   // Generate filename with timestamp
   const timestamp = new Date().toISOString().split('T')[0];
-  const filename = `${data.artist.title.replace(/[^a-z0-9]/gi, '_')}_contract_schedule_${timestamp}.xlsx`;
+  const entityName = data.artist?.title || data.label?.title || 'unknown';
+  const filename = `${entityName.replace(/[^a-z0-9]/gi, '_')}_contract_schedule_${timestamp}.xlsx`;
   
   // Write file
   XLSX.writeFile(wb, filename);

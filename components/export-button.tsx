@@ -4,15 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Download, FileSpreadsheet } from 'lucide-react';
 import { useSelectionStore } from '@/stores/selection-store';
 import { exportToSpreadsheet } from '@/lib/export-utils';
+import { ExportStatus } from '@/components/export-status';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 export function ExportButton() {
   const [isExporting, setIsExporting] = useState(false);
-  const { selectedArtist, selectedReleases, trackDetails, toggleRelease } = useSelectionStore();
+  const { selectedArtist, selectedLabel, selectedReleases, trackDetails, toggleRelease } = useSelectionStore();
   
   // Get releases data to enable select all/clear all functionality
-  const { data } = useQuery({
+  const { data: artistData } = useQuery({
     queryKey: ['releases', selectedArtist?.id],
     queryFn: async () => {
       if (!selectedArtist?.id) return null;
@@ -23,12 +24,25 @@ export function ExportButton() {
     enabled: !!selectedArtist?.id
   });
 
-  const releases = data?.releases || [];
-  const mainReleases = releases.filter((r: any) => 
-    r.type === 'master' || r.role === 'Main'
-  );
+  const { data: labelData } = useQuery({
+    queryKey: ['label-releases', selectedLabel?.id],
+    queryFn: async () => {
+      if (!selectedLabel?.id) return null;
+      const res = await fetch(`/api/discogs/label/${selectedLabel.id}/releases`);
+      if (!res.ok) throw new Error('Failed to fetch label releases');
+      return res.json();
+    },
+    enabled: !!selectedLabel?.id
+  });
+
+  const artistReleases = artistData?.releases || [];
+  const labelReleases = labelData?.releases || [];
   
-  const canExport = selectedArtist && selectedReleases.length > 0;
+  const mainReleases = selectedArtist 
+    ? artistReleases.filter((r: any) => r.type === 'master' || r.role === 'Main')
+    : labelReleases;
+  
+  const canExport = (selectedArtist || selectedLabel) && selectedReleases.length > 0;
   
   const handleExport = async () => {
     if (!canExport) return;
@@ -54,6 +68,7 @@ export function ExportButton() {
       
       exportToSpreadsheet({
         artist: selectedArtist,
+        label: selectedLabel,
         releases: selectedReleases,
         trackDetails: trackDetailsMap
       });
@@ -65,10 +80,15 @@ export function ExportButton() {
     }
   };
   
-  if (!selectedArtist) return null;
+  if (!selectedArtist && !selectedLabel) return null;
 
   return (
     <div className="space-y-4">
+      {/* Export Status Indicator */}
+      <div className="flex items-center justify-center">
+        <ExportStatus />
+      </div>
+
       {/* Release Selection Count */}
       <div className="text-center">
         <p className="text-sm text-muted-foreground">

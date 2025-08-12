@@ -124,17 +124,60 @@ export default function Home() {
       </div>
       
       {/* Main Tabs */}
-      <Tabs defaultValue="artist" className="w-full">
+      <Tabs defaultValue="label" className="w-full">
         <TabsList className="mb-6">
-          <TabsTrigger value="artist" className="flex items-center gap-2">
-            <Music className="w-4 h-4" />
-            Artist Search
-          </TabsTrigger>
           <TabsTrigger value="label" className="flex items-center gap-2">
             <Tag className="w-4 h-4" />
             Label Search
           </TabsTrigger>
+          <TabsTrigger value="artist" className="flex items-center gap-2">
+            <Music className="w-4 h-4" />
+            Artist Search
+          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="label">
+          <LabelSearchForm />
+          
+          {selectedLabel ? (
+            <div className="grid gap-6 lg:grid-cols-3">
+              {/* Export Data - Desktop sidebar */}
+              <div className="lg:col-span-1">
+                <Card className="hidden lg:block">
+                  <CardHeader>
+                    <CardTitle>Export Data</CardTitle>
+                    <CardDescription>
+                      Download selected releases as spreadsheet
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ExportButton />
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Label Releases - Takes remaining space */}
+              <div className="lg:col-span-2">
+                <LabelReleases />
+              </div>
+            </div>
+          ) : null}
+          
+          {/* Export Data - Mobile full width */}
+          {selectedLabel && (
+            <Card className="mt-6 lg:hidden">
+              <CardHeader>
+                <CardTitle>Export Data</CardTitle>
+                <CardDescription>
+                  Download selected releases as spreadsheet
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ExportButton />
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
 
         <TabsContent value="artist">
           <Card className="mb-6">
@@ -224,49 +267,6 @@ export default function Home() {
           
           {/* Export Data - Mobile full width */}
           {selectedArtist && (
-            <Card className="mt-6 lg:hidden">
-              <CardHeader>
-                <CardTitle>Export Data</CardTitle>
-                <CardDescription>
-                  Download selected releases as spreadsheet
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ExportButton />
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="label">
-          <LabelSearchForm />
-          
-          {selectedLabel ? (
-            <div className="grid gap-6 lg:grid-cols-3">
-              {/* Export Data - Desktop sidebar */}
-              <div className="lg:col-span-1">
-                <Card className="hidden lg:block">
-                  <CardHeader>
-                    <CardTitle>Export Data</CardTitle>
-                    <CardDescription>
-                      Download selected releases as spreadsheet
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ExportButton />
-                  </CardContent>
-                </Card>
-              </div>
-              
-              {/* Label Releases - Takes remaining space */}
-              <div className="lg:col-span-2">
-                <LabelReleases />
-              </div>
-            </div>
-          ) : null}
-          
-          {/* Export Data - Mobile full width */}
-          {selectedLabel && (
             <Card className="mt-6 lg:hidden">
               <CardHeader>
                 <CardTitle>Export Data</CardTitle>

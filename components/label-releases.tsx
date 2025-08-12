@@ -136,7 +136,6 @@ function LabelReleaseItem({
 export function LabelReleases() {
   const { selectedLabel, selectedReleases, toggleRelease, addTrackDetails } = useSelectionStore();
   const [expandedReleases, setExpandedReleases] = useState<Set<string>>(new Set());
-  const [showAll, setShowAll] = useState(false);
   const [groupedByArtist, setGroupedByArtist] = useState(true);
 
   const { data, isLoading, error } = useQuery({
@@ -289,7 +288,6 @@ export function LabelReleases() {
     );
   }
 
-  const displayReleases = showAll ? releases : releases.slice(0, 50);
   const totalReleases = data?.pagination?.items || releases.length;
   const selectedCount = selectedReleases.length;
 
@@ -318,16 +316,6 @@ export function LabelReleases() {
             >
               {groupedByArtist ? 'List View' : 'Group by Artist'}
             </Button>
-            {releases.length > 50 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowAll(!showAll)}
-              >
-                <Eye className="w-4 h-4 mr-1" />
-                {showAll ? 'Show Less' : `Show All (${totalReleases})`}
-              </Button>
-            )}
           </div>
         </div>
       </CardHeader>
@@ -363,7 +351,7 @@ export function LabelReleases() {
         ) : (
           // List View
           <div className="space-y-3">
-            {displayReleases.map((release: any) => (
+            {releases.map((release: any) => (
               <LabelReleaseItem
                 key={release.id}
                 release={release}
@@ -374,17 +362,6 @@ export function LabelReleases() {
                 trackData={getTrackData(release.id)}
               />
             ))}
-          </div>
-        )}
-
-        {!showAll && releases.length > 50 && (
-          <div className="text-center pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setShowAll(true)}
-            >
-              Show {totalReleases - 50} more releases
-            </Button>
           </div>
         )}
       </CardContent>

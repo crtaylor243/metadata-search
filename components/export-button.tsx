@@ -6,11 +6,12 @@ import { useSelectionStore } from '@/stores/selection-store';
 import { exportToSpreadsheet } from '@/lib/export-utils';
 import { ExportStatus } from '@/components/export-status';
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export function ExportButton() {
   const [isExporting, setIsExporting] = useState(false);
   const { selectedArtist, selectedLabel, selectedReleases, trackDetails, toggleRelease } = useSelectionStore();
+  const queryClient = useQueryClient();
   
   // Get releases data to enable select all/clear all functionality
   const { data: artistData } = useQuery({
@@ -38,11 +39,45 @@ export function ExportButton() {
   const artistReleases = artistData?.releases || [];
   const labelReleases = labelData?.releases || [];
   
-  const mainReleases = selectedArtist 
+  // For artist releases, filter to main releases only
+  // For label releases, use all releases since they're already filtered by the label
+  const allAvailableReleases = selectedArtist 
     ? artistReleases.filter((r: any) => r.type === 'master' || r.role === 'Main')
     : labelReleases;
   
   const canExport = (selectedArtist || selectedLabel) && selectedReleases.length > 0;
+
+  // Check if data is ready for export (all queries completed successfully)
+  const isDataReady = () => {
+    if (selectedReleases.length === 0) return false;
+
+    // Check if any release track queries are still loading or failed
+    let hasLoadingOrFailedQueries = false;
+    
+    selectedReleases.forEach(release => {
+      const queryState = queryClient.getQueryState(['release', release.id]);
+      if (!queryState || queryState.status === 'pending' || queryState.status === 'error') {
+        hasLoadingOrFailedQueries = true;
+      }
+    });
+
+    // Also check main releases query
+    if (selectedArtist) {
+      const releasesQueryState = queryClient.getQueryState(['releases', selectedArtist.id]);
+      if (releasesQueryState && (releasesQueryState.status === 'pending' || releasesQueryState.status === 'error')) {
+        hasLoadingOrFailedQueries = true;
+      }
+    }
+
+    if (selectedLabel) {
+      const labelReleasesQueryState = queryClient.getQueryState(['label-releases', selectedLabel.id]);
+      if (labelReleasesQueryState && (labelReleasesQueryState.status === 'pending' || labelReleasesQueryState.status === 'error')) {
+        hasLoadingOrFailedQueries = true;
+      }
+    }
+
+    return !hasLoadingOrFailedQueries;
+  };
   
   const handleExport = async () => {
     if (!canExport) return;
@@ -102,14 +137,14 @@ export function ExportButton() {
           variant="outline"
           size="sm"
           onClick={() => {
-            mainReleases.forEach((release: any) => {
+            allAvailableReleases.forEach((release: any) => {
               const isSelected = selectedReleases.some(r => r.id === release.id);
               if (!isSelected) {
                 toggleRelease(release);
               }
             });
           }}
-          disabled={selectedReleases.length === mainReleases.length}
+          disabled={selectedReleases.length === allAvailableReleases.length}
           className="flex-1"
         >
           Select All
@@ -119,7 +154,7 @@ export function ExportButton() {
           size="sm"
           onClick={() => {
             selectedReleases.forEach((release: any) => {
-              if (mainReleases.some(r => r.id === release.id)) {
+              if (allAvailableReleases.some(r => r.id === release.id)) {
                 toggleRelease(release);
               }
             });
@@ -134,7 +169,7 @@ export function ExportButton() {
       {/* Export Button */}
       <Button
         onClick={handleExport}
-        disabled={!canExport || isExporting}
+        disabled={!canExport || isExporting || !isDataReady()}
         size="lg"
         className="w-full"
       >

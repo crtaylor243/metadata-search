@@ -13,6 +13,7 @@ interface SearchHistory {
 interface HistoryStore {
   searches: SearchHistory[];
   addSearch: (search: Omit<SearchHistory, 'id' | 'timestamp'>) => void;
+  removeSearch: (id: string) => void;
   clearHistory: () => void;
   getRecentSearches: (limit?: number) => SearchHistory[];
 }
@@ -38,6 +39,10 @@ export const useHistoryStore = create<HistoryStore>()(
         const updated = [newSearch, ...filtered].slice(0, 50);
         return { searches: updated };
       }),
+      
+      removeSearch: (id) => set((state) => ({
+        searches: state.searches.filter(s => s.id !== id)
+      })),
       
       clearHistory: () => set({ searches: [] }),
       

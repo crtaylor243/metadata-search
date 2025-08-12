@@ -66,49 +66,106 @@ export async function GET(
     
     console.log(`Label ${id} - Final result: ${allReleases.length} total releases (before deduplication)`);
     
-    // First deduplicate by ID (remove exact duplicates)
-    const uniqueByIdReleases = allReleases.reduce((acc: any[], release: any) => {
-      if (!acc.some(r => r.id === release.id)) {
-        acc.push(release);
-      }
-      return acc;
-    }, []);
-    
-    console.log(`Label ${id} - After ID deduplication: ${uniqueByIdReleases.length} releases`);
-    
-    // Then deduplicate by title (keep only one version per album/release)
-    const uniqueByTitleReleases = uniqueByIdReleases.reduce((acc: any[], release: any) => {
-      const normalizedTitle = release.title?.toLowerCase().trim();
-      if (!normalizedTitle) return acc;
+    // Calculate Shadow Catalog Number for sorting (moved up to use in deduplication)
+    const calculateShadowCatalogNumber = (catno: string): string => {
+      if (!catno) return 'ZZZZZZZZZZZZZZZ'; // Put empty catalog numbers at the end
       
-      // Check if we already have a release with this title (by same artist if available)
-      const key = release.artist ? `${release.artist.toLowerCase()}-${normalizedTitle}` : normalizedTitle;
+      let shadow = catno;
+      
+      // Step 1: Transform all lowercase letters to uppercase
+      shadow = shadow.toUpperCase();
+      
+      // Step 2: Add an extra 'spacer zero' or move trailing single number
+      // Check for 'number dash single number' or 'number space single number' at the end
+      const trailingSingleNumberMatch = shadow.match(/^(.+)[-\s](\d)$/);
+      if (trailingSingleNumberMatch) {
+        // Move that single number to the end instead of adding zero
+        shadow = trailingSingleNumberMatch[1] + trailingSingleNumberMatch[2];
+      } else {
+        // Add spacer zero
+        shadow = shadow + '0';
+      }
+      
+      // Step 3: Strip out all characters except letters and numbers
+      shadow = shadow.replace(/[^A-Z0-9]/g, '');
+      
+      // Step 4: Separate groups of numbers from groups of letters using tab characters
+      // Step 5: Pad all number groups out to sixteen digits wide
+      let result = '';
+      let i = 0;
+      while (i < shadow.length) {
+        if (/\d/.test(shadow[i])) {
+          // Start of a number group
+          let numberGroup = '';
+          while (i < shadow.length && /\d/.test(shadow[i])) {
+            numberGroup += shadow[i];
+            i++;
+          }
+          // Pad to 16 digits
+          numberGroup = numberGroup.padStart(16, '0');
+          result += (result ? '\t' : '') + numberGroup;
+        } else {
+          // Start of a letter group
+          let letterGroup = '';
+          while (i < shadow.length && /[A-Z]/.test(shadow[i])) {
+            letterGroup += shadow[i];
+            i++;
+          }
+          result += (result ? '\t' : '') + letterGroup;
+        }
+      }
+      
+      return result;
+    };
+    
+    // Deduplicate by Shadow Catalog Number ONLY
+    const uniqueByShadowCatnoReleases = allReleases.reduce((acc: any[], release: any) => {
+      const shadowCatno = calculateShadowCatalogNumber(release.catno || '');
+      
+      // Check if we already have a release with this Shadow Catalog Number
       const existing = acc.find(r => {
-        const existingKey = r.artist ? `${r.artist.toLowerCase()}-${r.title?.toLowerCase().trim()}` : r.title?.toLowerCase().trim();
-        return existingKey === key;
+        const existingShadowCatno = calculateShadowCatalogNumber(r.catno || '');
+        return existingShadowCatno === shadowCatno;
       });
       
       if (!existing) {
-        // Keep the release with the most formats info (prefer master or first chronologically)
+        // Find all releases with this same Shadow Catalog Number
+        const variants = allReleases.filter(r => {
+          const rShadowCatno = calculateShadowCatalogNumber(r.catno || '');
+          return rShadowCatno === shadowCatno;
+        });
+        
+        // Prefer master release if available, otherwise first chronologically
+        const selectedVariant = variants.find(v => v.type === 'master') || 
+                               variants.sort((a, b) => (a.year || 9999) - (b.year || 9999))[0] ||
+                               release;
+        
+        // Debug which variant was selected
+        if (variants.length > 1) {
+          console.log(`Shadow Catalog Number "${shadowCatno}" (from "${release.catno}") has ${variants.length} variants, selected:`, {
+            id: selectedVariant.id,
+            catno: selectedVariant.catno,
+            title: selectedVariant.title,
+            format: selectedVariant.format,
+            type: selectedVariant.type,
+            year: selectedVariant.year
+          }, 'from variants:', variants.map(v => ({ id: v.id, catno: v.catno, title: v.title, format: v.format })));
+        }
+        
         acc.push({
-          ...release,
-          // Add metadata about available formats for this title
-          formatVariants: uniqueByIdReleases
-            .filter(r => {
-              const rKey = r.artist ? `${r.artist.toLowerCase()}-${r.title?.toLowerCase().trim()}` : r.title?.toLowerCase().trim();
-              return rKey === key;
-            })
-            .map(r => ({ id: r.id, format: r.format, year: r.year }))
+          ...selectedVariant,
+          // Add metadata about available formats for this Shadow Catalog Number
+          formatVariants: variants.map(r => ({ id: r.id, format: r.format, year: r.year, catno: r.catno }))
         });
       }
       
       return acc;
     }, []);
     
-    console.log(`Label ${id} - After title deduplication: ${uniqueByTitleReleases.length} unique releases (${uniqueByIdReleases.length - uniqueByTitleReleases.length} format variants removed)`);
+    console.log(`Label ${id} - After Shadow Catalog Number deduplication: ${uniqueByShadowCatnoReleases.length} unique releases (${allReleases.length - uniqueByShadowCatnoReleases.length} variants removed)`);
     
     // Analyze release types for debugging
-    const releaseAnalysis = uniqueByTitleReleases.reduce((acc: any, release: any) => {
+    const releaseAnalysis = uniqueByShadowCatnoReleases.reduce((acc: any, release: any) => {
       const status = release.status || 'unknown';
       const type = release.type || 'unknown';
       const format = release.format || 'unknown';
@@ -122,13 +179,32 @@ export async function GET(
     
     console.log(`Label ${id} - Release analysis:`, JSON.stringify(releaseAnalysis, null, 2));
     
+    // Sort releases by Shadow Catalog Number
+    const sortByShadowCatalogNumber = (a: any, b: any) => {
+      const shadowA = calculateShadowCatalogNumber(a.catno || '');
+      const shadowB = calculateShadowCatalogNumber(b.catno || '');
+      
+      return shadowA.localeCompare(shadowB);
+    };
+    
+    // Sort releases by Shadow Catalog Number
+    const sortedReleases = [...uniqueByShadowCatnoReleases].sort(sortByShadowCatalogNumber);
+    
+    console.log(`Label ${id} - Sample catalog numbers (sorted by Shadow Catalog Number):`, sortedReleases.slice(0, 10).map(r => ({
+      id: r.id,
+      title: r.title,
+      catno: r.catno,
+      shadowCatno: calculateShadowCatalogNumber(r.catno || ''),
+      year: r.year
+    })));
+    
     return NextResponse.json({
-      releases: uniqueByTitleReleases,
+      releases: sortedReleases,
       pagination: {
-        items: uniqueByTitleReleases.length,
+        items: sortedReleases.length,
         page: 1,
         pages: 1,
-        per_page: uniqueByTitleReleases.length
+        per_page: sortedReleases.length
       }
     });
   } catch (error) {

@@ -4,10 +4,24 @@ import { useSelectionStore } from '@/stores/selection-store';
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { rateLimiter } from '@/lib/discogs-rate-limiter';
+import { useEffect, useState } from 'react';
 
 export function ExportStatus() {
   const { selectedReleases, selectedArtist, selectedLabel } = useSelectionStore();
   const queryClient = useQueryClient();
+  const [rateLimitStatus, setRateLimitStatus] = useState(rateLimiter.getRateLimitStatus());
+
+  // Update rate limit status periodically
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newStatus = rateLimiter.getRateLimitStatus();
+      console.log('Rate limit status update:', newStatus); // Debug logging
+      setRateLimitStatus(newStatus);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   if (selectedReleases.length === 0) {
     return (

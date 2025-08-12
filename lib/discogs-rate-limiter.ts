@@ -7,8 +7,8 @@ interface RateLimitInfo {
 
 // Configuration for rate limiting
 const RATE_LIMIT_CONFIG = {
-  // Stay at or below 85% of the rate limit
-  maxUsagePercent: 0.85,
+  // Stay at or below 95% of the rate limit
+  maxUsagePercent: 0.95,
   // Default limits (will be updated from API headers)
   defaultLimit: 60, // Discogs authenticated limit
   // Minimum delay between requests (milliseconds)
@@ -29,6 +29,7 @@ class DiscogsRateLimiter {
   private lastRequestTime: number = 0;
   private requestQueue: Array<() => Promise<void>> = [];
   private isProcessing = false;
+  private forcedTimeoutEnd: number = 0;
 
   private constructor() {}
 
@@ -53,55 +54,74 @@ class DiscogsRateLimiter {
     };
   }
 
-  // Calculate delay needed to stay at 85% of rate limit
+  // Apply a forced 60-second timeout
+  applyForcedTimeout() {
+    this.forcedTimeoutEnd = Date.now() + 60000; // 60 seconds from now
+    console.log('Forced 60-second timeout applied - cooling off');
+  }
+
+  // Check if currently in forced timeout
+  isInForcedTimeout(): boolean {
+    return Date.now() < this.forcedTimeoutEnd;
+  }
+
+  // Get time remaining in forced timeout (in milliseconds)
+  getForcedTimeoutRemaining(): number {
+    if (!this.isInForcedTimeout()) return 0;
+    return Math.max(0, this.forcedTimeoutEnd - Date.now());
+  }
+
+
+  // Calculate delay needed to stay at 95% of rate limit
   private calculateDelay(): number {
     const now = Date.now();
     const timeSinceLastRequest = now - this.lastRequestTime;
+
+    // Check for forced timeout first
+    if (this.isInForcedTimeout()) {
+      const timeoutRemaining = this.getForcedTimeoutRemaining();
+      console.log(`In forced timeout, waiting ${timeoutRemaining}ms`);
+      return timeoutRemaining;
+    }
     
     // If we don't have current rate limit info, use conservative defaults
     if (this.currentLimits.remaining <= 0) {
-      // No requests remaining, wait until reset
+      // No requests remaining - trigger forced timeout if not already active
+      if (!this.isInForcedTimeout()) {
+        console.log('Rate limit exhausted - applying forced 60-second timeout');
+        this.applyForcedTimeout();
+        return this.getForcedTimeoutRemaining();
+      }
       const timeUntilReset = Math.max(0, this.currentLimits.resetTime - now);
       console.log(`Rate limit exhausted, waiting ${timeUntilReset}ms until reset`);
       return timeUntilReset + RATE_LIMIT_CONFIG.timingBufferMs;
     }
     
-    // Calculate 85% threshold
-    const maxAllowedUsage = Math.floor(this.currentLimits.limit * RATE_LIMIT_CONFIG.maxUsagePercent);
+    // Calculate current usage percentage
     const currentUsagePercent = this.currentLimits.used / this.currentLimits.limit;
+    const maxAllowedUsage = Math.floor(this.currentLimits.limit * RATE_LIMIT_CONFIG.maxUsagePercent);
     
-    console.log(`Rate limit status: ${this.currentLimits.used}/${this.currentLimits.limit} (${Math.round(currentUsagePercent * 100)}%), target max: ${maxAllowedUsage} (85%)`);
+    console.log(`Rate limit status: ${this.currentLimits.used}/${this.currentLimits.limit} (${Math.round(currentUsagePercent * 100)}%), target max: ${maxAllowedUsage} (95%)`);
     
-    // If we're approaching 85% limit, calculate required spacing
-    if (this.currentLimits.used >= maxAllowedUsage) {
-      // We're at or above 85%, need to wait for reset window
+    // Only apply throttling if we're at or above 95% usage
+    if (currentUsagePercent >= RATE_LIMIT_CONFIG.maxUsagePercent) {
+      // We're at or above 95%, need to be conservative
       const timeUntilReset = Math.max(0, this.currentLimits.resetTime - now);
-      const delayForSafeReset = Math.max(timeUntilReset * 0.1, RATE_LIMIT_CONFIG.minDelayMs * 3);
+      const delayForSafeReset = Math.max(timeUntilReset * 0.15, RATE_LIMIT_CONFIG.minDelayMs * 5);
       
-      console.log(`Above 85% limit, using conservative delay: ${delayForSafeReset}ms`);
+      console.log(`At/above 95% limit (${Math.round(currentUsagePercent * 100)}%), using conservative delay: ${delayForSafeReset}ms`);
       return delayForSafeReset;
     }
     
-    // Calculate optimal spacing to stay under 85% for the remainder of the window
-    const timeRemainingInWindow = Math.max(0, this.currentLimits.resetTime - now);
-    const requestsRemainingIn85Percent = Math.max(0, maxAllowedUsage - this.currentLimits.used);
+    // Below 95% - use minimal delay for speed
+    const minimumDelay = Math.max(0, RATE_LIMIT_CONFIG.minDelayMs - timeSinceLastRequest);
     
-    if (requestsRemainingIn85Percent > 0 && timeRemainingInWindow > 0) {
-      // Distribute remaining requests evenly across time window
-      const optimalSpacing = timeRemainingInWindow / requestsRemainingIn85Percent;
-      const recommendedDelay = Math.max(optimalSpacing, RATE_LIMIT_CONFIG.minDelayMs);
-      
-      // Ensure minimum time since last request
-      const timeSinceLastReq = now - this.lastRequestTime;
-      const additionalDelay = Math.max(0, recommendedDelay - timeSinceLastReq);
-      
-      console.log(`Optimal spacing: ${Math.round(optimalSpacing)}ms, recommended delay: ${Math.round(recommendedDelay)}ms, additional needed: ${Math.round(additionalDelay)}ms`);
-      return additionalDelay;
+    if (minimumDelay > 0) {
+      console.log(`Below 95% threshold (${Math.round(currentUsagePercent * 100)}%), using minimal delay: ${minimumDelay}ms`);
+    } else {
+      console.log(`Below 95% threshold (${Math.round(currentUsagePercent * 100)}%), no delay needed`);
     }
     
-    // Fallback to minimum delay
-    const minimumDelay = Math.max(0, RATE_LIMIT_CONFIG.minDelayMs - timeSinceLastRequest);
-    console.log(`Using minimum delay: ${minimumDelay}ms`);
     return minimumDelay;
   }
 
@@ -163,12 +183,19 @@ class DiscogsRateLimiter {
       usagePercent: currentUsagePercent,
       maxAllowedUsage,
       isNearLimit: this.currentLimits.used >= maxAllowedUsage,
-      requestsUntil85Percent: Math.max(0, maxAllowedUsage - this.currentLimits.used)
+      requestsUntil100Percent: Math.max(0, maxAllowedUsage - this.currentLimits.used),
+      isInForcedTimeout: this.isInForcedTimeout(),
+      forcedTimeoutRemaining: this.getForcedTimeoutRemaining()
     };
   }
 }
 
 export const rateLimiter = DiscogsRateLimiter.getInstance();
+
+// Export function to trigger timeout (for testing or manual cooldown)
+export function triggerRateLimitTimeout() {
+  rateLimiter.applyForcedTimeout();
+}
 
 // Wrapper for fetch with rate limiting and retry logic
 export async function fetchWithRateLimit(

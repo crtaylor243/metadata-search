@@ -39,29 +39,51 @@ function LabelReleaseItem({
             />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-medium truncate">{release.title}</h3>
+                <h3 className="font-medium truncate">
+                  {release.artist && (
+                    <span className="text-muted-foreground">{release.artist} - </span>
+                  )}
+                  {release.title}
+                </h3>
                 {release.year && (
                   <Badge variant="outline" className="shrink-0">
                     {release.year}
                   </Badge>
                 )}
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                {release.artist && (
-                  <span className="font-medium">{release.artist}</span>
-                )}
-                {release.format && (
-                  <span className="bg-muted px-2 py-1 rounded text-xs">
-                    {release.format}
-                    {release.formatVariants && release.formatVariants.length > 1 && (
-                      <span className="ml-1 text-muted-foreground">
-                        (+{release.formatVariants.length - 1} formats)
+              <div className="text-sm text-muted-foreground">
+                
+                {/* Format Variants Table */}
+                {release.formatVariants && release.formatVariants.length > 0 ? (
+                  <div className="mt-2">
+                    <div className="border rounded-md overflow-hidden">
+                      <table className="w-full text-xs">
+                        <tbody>
+                          {release.formatVariants
+                            .sort((a: any, b: any) => (a.year || 9999) - (b.year || 9999))
+                            .map((variant: any, index: number) => (
+                            <tr key={variant.id || index} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
+                              <td className="px-2 py-1">{variant.format || 'Unknown'}</td>
+                              <td className="px-2 py-1 font-mono">{variant.catno || '—'}</td>
+                              <td className="px-2 py-1">{variant.year || '—'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : (
+                  /* Fallback if no formatVariants */
+                  <div className="flex items-center gap-2">
+                    {release.format && (
+                      <span className="bg-muted px-2 py-1 rounded text-xs">
+                        {release.format}
                       </span>
                     )}
-                  </span>
-                )}
-                {release.catno && (
-                  <span>Cat: {release.catno}</span>
+                    {release.catno && (
+                      <span className="font-mono">Cat: {release.catno}</span>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -141,7 +163,6 @@ function LabelReleaseItem({
 export function LabelReleases() {
   const { selectedLabel, selectedReleases, toggleRelease, addTrackDetails } = useSelectionStore();
   const [expandedReleases, setExpandedReleases] = useState<Set<string>>(new Set());
-  const [groupedByArtist, setGroupedByArtist] = useState(true);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['label-releases', selectedLabel?.id],
@@ -156,17 +177,8 @@ export function LabelReleases() {
 
   console.log('LabelReleases render - selectedLabel:', !!selectedLabel, 'isLoading:', isLoading, 'data loaded:', !!data, 'releases count:', data?.releases?.length || 0);
 
+  // Releases are already sorted by catalog number from the API
   const releases = data?.releases || [];
-  
-  // Group releases by artist
-  const releasesByArtist = releases.reduce((groups: any, release: any) => {
-    const artist = release.artist || 'Unknown Artist';
-    if (!groups[artist]) {
-      groups[artist] = [];
-    }
-    groups[artist].push(release);
-    return groups;
-  }, {});
 
   // Track which releases need track details loaded
   const releasesToLoad = [...selectedReleases, ...Array.from(expandedReleases).map(id => 
@@ -305,72 +317,32 @@ export function LabelReleases() {
           <div>
             <CardTitle className="flex items-center gap-2">
               Label Releases
-              <Badge variant="secondary">
-                {totalReleases} total
-              </Badge>
               {selectedCount > 0 && (
                 <Badge variant="default">
                   {selectedCount} selected
                 </Badge>
               )}
+              <Badge variant="secondary">
+                {totalReleases} total
+              </Badge>
             </CardTitle>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setGroupedByArtist(!groupedByArtist)}
-            >
-              {groupedByArtist ? 'List View' : 'Group by Artist'}
-            </Button>
           </div>
         </div>
       </CardHeader>
       <CardContent className="max-h-[600px] overflow-y-auto space-y-4">
-        {groupedByArtist ? (
-          // Grouped by Artist View
-          Object.entries(releasesByArtist).map(([artist, artistReleases]: [string, any[]]) => (
-            <Card key={artist} className="border-l-4 border-l-primary/20">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Music className="w-5 h-5 text-primary" />
-                  {artist}
-                  <Badge variant="outline" className="ml-auto">
-                    {artistReleases.length} releases
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {artistReleases.map((release: any) => (
-                  <LabelReleaseItem
-                    key={release.id}
-                    release={release}
-                    isExpanded={expandedReleases.has(release.id)}
-                    isSelected={isReleaseSelected(release)}
-                    onToggleExpansion={() => toggleReleaseExpansion(release.id)}
-                    onToggleSelection={() => handleReleaseToggle(release)}
-                    trackData={getTrackData(release.id)}
-                  />
-                ))}
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          // List View
-          <div className="space-y-3">
-            {releases.map((release: any) => (
-              <LabelReleaseItem
-                key={release.id}
-                release={release}
-                isExpanded={expandedReleases.has(release.id)}
-                isSelected={isReleaseSelected(release)}
-                onToggleExpansion={() => toggleReleaseExpansion(release.id)}
-                onToggleSelection={() => handleReleaseToggle(release)}
-                trackData={getTrackData(release.id)}
-              />
-            ))}
-          </div>
-        )}
+        <div className="space-y-3">
+          {releases.map((release: any) => (
+            <LabelReleaseItem
+              key={release.id}
+              release={release}
+              isExpanded={expandedReleases.has(release.id)}
+              isSelected={isReleaseSelected(release)}
+              onToggleExpansion={() => toggleReleaseExpansion(release.id)}
+              onToggleSelection={() => handleReleaseToggle(release)}
+              trackData={getTrackData(release.id)}
+            />
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

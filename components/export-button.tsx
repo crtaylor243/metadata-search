@@ -7,15 +7,25 @@ import { exportToSpreadsheet } from '@/lib/export-utils';
 import { ExportStatus } from '@/components/export-status';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { triggerRateLimitTimeout, rateLimiter } from '@/lib/discogs-rate-limiter';
 
 export function ExportButton() {
   const [isExporting, setIsExporting] = useState(false);
   const { selectedArtist, selectedLabel, selectedReleases, trackDetails, toggleRelease } = useSelectionStore();
   const queryClient = useQueryClient();
   
-  // Get releases data from the query cache (data should already be loaded by the respective components)
-  const artistData = queryClient.getQueryData(['releases', selectedArtist?.id]);
-  const labelData = queryClient.getQueryData(['label-releases', selectedLabel?.id]);
+  // Use reactive queries to ensure component updates when data changes
+  const { data: artistData } = useQuery({
+    queryKey: ['releases', selectedArtist?.id],
+    queryFn: () => null, // Won't be called since data should already be in cache
+    enabled: false // Don't fetch, just watch for cache changes
+  });
+  
+  const { data: labelData } = useQuery({
+    queryKey: ['label-releases', selectedLabel?.id], 
+    queryFn: () => null, // Won't be called since data should already be in cache
+    enabled: false // Don't fetch, just watch for cache changes
+  });
 
   const artistReleases = artistData?.releases || [];
   const labelReleases = labelData?.releases || [];
@@ -25,6 +35,10 @@ export function ExportButton() {
   const allAvailableReleases = selectedArtist 
     ? artistReleases.filter((r: any) => r.type === 'master' || r.role === 'Main')
     : labelReleases;
+    
+  // Check if data is loaded and available
+  const isDataLoaded = selectedArtist ? !!artistData : !!labelData;
+  const hasAvailableReleases = allAvailableReleases.length > 0;
   
   const canExport = (selectedArtist || selectedLabel) && selectedReleases.length > 0;
 
@@ -96,15 +110,23 @@ export function ExportButton() {
     }
   };
   
-  console.log('ExportButton render - selectedArtist:', !!selectedArtist, 'selectedLabel:', !!selectedLabel);
-  
   if (!selectedArtist && !selectedLabel) return null;
 
   return (
     <div className="space-y-4">
       {/* Export Status Indicator */}
       <div className="flex items-center justify-center">
-        <ExportStatus />
+        <div 
+          onDoubleClick={() => {
+            console.log('Double-click detected! Triggering manual rate limit timeout for testing');
+            triggerRateLimitTimeout();
+            console.log('Timeout triggered, checking status:', rateLimiter.getRateLimitStatus());
+          }}
+          className="cursor-pointer"
+          title="Double-click to test cooling off timeout"
+        >
+          <ExportStatus />
+        </div>
       </div>
 
       {/* Release Selection Count */}
@@ -120,11 +142,6 @@ export function ExportButton() {
           variant="outline"
           size="sm"
           onClick={() => {
-            console.log('Select All clicked - allAvailableReleases count:', allAvailableReleases.length);
-            console.log('Select All clicked - selectedReleases count before:', selectedReleases.length);
-            console.log('artistData?.releases length:', artistData?.releases?.length || 0);
-            console.log('labelData?.releases length:', labelData?.releases?.length || 0);
-            
             // Filter out releases that don't have valid IDs and deduplicate
             const validReleases = allAvailableReleases.filter((release: any) => release && release.id);
             const uniqueReleases = validReleases.reduce((acc: any[], release: any) => {
@@ -134,8 +151,6 @@ export function ExportButton() {
               return acc;
             }, []);
             
-            console.log('Valid unique releases count:', uniqueReleases.length);
-            
             uniqueReleases.forEach((release: any) => {
               const isSelected = selectedReleases.some(r => r.id === release.id);
               if (!isSelected) {
@@ -143,7 +158,7 @@ export function ExportButton() {
               }
             });
           }}
-          disabled={selectedReleases.length === allAvailableReleases.length}
+          disabled={!isDataLoaded || !hasAvailableReleases || (hasAvailableReleases && selectedReleases.length === allAvailableReleases.length)}
           className="flex-1"
         >
           Select All ({allAvailableReleases.length})

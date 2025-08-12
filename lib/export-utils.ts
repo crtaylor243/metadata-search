@@ -11,6 +11,7 @@ export function exportToSpreadsheet(data: {
   // Create single sheet in "Contract Schedule" format
   const contractData: any[] = [];
   
+  // Releases are already sorted by catalog number from the API
   data.releases.forEach(release => {
     const details = data.trackDetails.get(release.id);
     if (details?.processedTracks) {

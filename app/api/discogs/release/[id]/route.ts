@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const url = `https://api.discogs.com/releases/${params.id}`;
+  const { id } = await params;
+  const url = `https://api.discogs.com/releases/${id}`;
   
   try {
     const response = await fetch(url, {

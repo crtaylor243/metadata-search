@@ -5,7 +5,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const url = `https://api.discogs.com/artists/${id}/releases?per_page=100&sort=year`;
+  const searchParams = request.nextUrl.searchParams;
+  const page = searchParams.get('page') || '1';
+  const perPage = searchParams.get('per_page') || '100';
+  
+  const url = `https://api.discogs.com/labels/${id}/releases?per_page=${perPage}&page=${page}`;
   
   try {
     const response = await fetch(url, {

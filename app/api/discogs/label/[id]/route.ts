@@ -5,7 +5,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const url = `https://api.discogs.com/artists/${id}/releases?per_page=100&sort=year`;
+  const url = `https://api.discogs.com/labels/${id}`;
   
   try {
     const response = await fetch(url, {
@@ -20,7 +20,19 @@ export async function GET(
     }
     
     const data = await response.json();
-    return NextResponse.json(data);
+    
+    return NextResponse.json({
+      id: data.id,
+      name: data.name,
+      profile: data.profile,
+      contact_info: data.contact_info,
+      parent_label: data.parent_label,
+      sublabels: data.sublabels,
+      urls: data.urls,
+      images: data.images,
+      releases_url: data.releases_url,
+      data_quality: data.data_quality
+    });
   } catch (error) {
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }

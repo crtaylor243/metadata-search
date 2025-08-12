@@ -289,6 +289,19 @@ export function LabelSearchForm() {
               </div>
             </div>
           )}
+
+          {/* Loading State - Show in search card */}
+          {isLoading && (
+            <div className="flex flex-col items-center justify-center py-12 space-y-4">
+              <div className="relative">
+                <div className="w-16 h-16 border-4 border-muted rounded-full"></div>
+                <div className="absolute top-0 w-16 h-16 border-4 border-primary rounded-full animate-spin border-t-transparent"></div>
+              </div>
+              <p className="text-sm text-muted-foreground animate-pulse">
+                Searching for labels...
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
       
@@ -409,19 +422,6 @@ export function LabelSearchForm() {
             )}
           </CardContent>
         </Card>
-      )}
-      
-      {/* Loading State */}
-      {isLoading && (
-        <div className="flex flex-col items-center justify-center py-12 space-y-4">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-muted rounded-full"></div>
-            <div className="absolute top-0 w-16 h-16 border-4 border-primary rounded-full animate-spin border-t-transparent"></div>
-          </div>
-          <p className="text-sm text-muted-foreground animate-pulse">
-            Searching for labels...
-          </p>
-        </div>
       )}
       
       <style jsx>{`

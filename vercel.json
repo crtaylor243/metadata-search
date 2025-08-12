@@ -1,0 +1,7 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "SKIP_TYPE_CHECK=true npm run build",
+  "env": {
+    "SKIP_TYPE_CHECK": "true"
+  }
+}

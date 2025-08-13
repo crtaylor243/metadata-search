@@ -16,10 +16,8 @@ export function exportToSpreadsheet(data: {
     const details = data.trackDetails.get(release.id);
     if (details?.processedTracks) {
       details.processedTracks.forEach((track: any) => {
-        // Format album name with format in brackets (like "Piles Of Dirty Winters [CD]")
-        const albumWithFormat = details.displayFormat 
-          ? `${release.title} [${details.displayFormat}]`
-          : `${release.title}`;
+        // Use album name without format brackets
+        const albumWithFormat = release.title;
         
         // Get writers (Control column) - comma-separated
         const writers = Array.isArray(track.writers) && track.writers.length > 0

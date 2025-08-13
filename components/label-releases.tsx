@@ -51,25 +51,20 @@ function LabelReleaseItem({
               ) : null}
               <Music className={`w-5 h-5 text-muted-foreground ${release.thumb ? 'hidden' : ''}`} />
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-medium truncate">
+            <div className="flex-1 min-w-0 max-w-md">
+              <div className="flex items-start gap-2 mb-1">
+                <h3 className="font-medium leading-tight break-words">
                   {release.artist && (
                     <span className="text-muted-foreground">{release.artist} - </span>
                   )}
                   {release.title}
                 </h3>
-                {release.year && (
-                  <Badge variant="outline" className="shrink-0">
-                    {release.year}
-                  </Badge>
-                )}
               </div>
               <div className="text-sm text-muted-foreground">
                 
                 {/* Format Variants Table */}
                 {release.formatVariants && release.formatVariants.length > 0 ? (
-                  <div className="mt-2">
+                  <div className="mt-2 max-w-md">
                     <div className="border rounded-md overflow-hidden">
                       <table className="w-full text-xs">
                         <tbody>

@@ -189,7 +189,6 @@ export function LabelReleases() {
     enabled: !!selectedLabel?.id
   });
 
-  console.log('LabelReleases render - selectedLabel:', !!selectedLabel, 'isLoading:', isLoading, 'data loaded:', !!data, 'releases count:', data?.releases?.length || 0);
 
   // Releases are already sorted by catalog number from the API
   const releases = data?.releases || [];

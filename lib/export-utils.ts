@@ -24,8 +24,11 @@ export function exportToSpreadsheet(data: {
           ? track.writers.join(', ')
           : '';
         
+        // Use artist name from release details - this is the definitive source
+        const artistName = details.artists?.[0]?.name;
+        
         contractData.push({
-          'Artist': release.artist || (data.artist?.title) || 'Unknown',
+          'Artist': artistName,
           'Album': albumWithFormat,
           'Recording Title': track.title,
           'Control': writers

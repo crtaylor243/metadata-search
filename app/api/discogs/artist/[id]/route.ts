@@ -22,6 +22,7 @@ export async function GET(
     
     const data = await response.json();
     
+    
     // Extract the best available image
     const profileImage = data.images?.find((img: any) => 
       img.type === 'primary' || img.type === 'secondary'

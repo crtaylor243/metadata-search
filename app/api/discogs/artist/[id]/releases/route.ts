@@ -29,6 +29,8 @@ export async function GET(
       }
       
       const data = await response.json();
+      
+      
       allReleases = allReleases.concat(data.releases || []);
       
       // Update pagination info from first request
@@ -68,7 +70,6 @@ export async function GET(
       return acc;
     }, []);
     
-    console.log(`Artist ${id} - Total releases: ${allReleases.length}, unique by ID: ${uniqueByIdReleases.length}, unique by title: ${uniqueByTitleReleases.length}`);
     
     return NextResponse.json({
       releases: uniqueByTitleReleases,

@@ -16,7 +16,6 @@ export function ExportStatus() {
   useEffect(() => {
     const interval = setInterval(() => {
       const newStatus = rateLimiter.getRateLimitStatus();
-      console.log('Rate limit status update:', newStatus); // Debug logging
       setRateLimitStatus(newStatus);
     }, 1000);
 

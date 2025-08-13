@@ -104,7 +104,6 @@ export default function Home() {
   const [recentSearches, setRecentSearches] = useState<any[]>([]);
   const [isMounted, setIsMounted] = useState(false);
   
-  console.log('Home page render - selectedArtist:', !!selectedArtist, 'selectedLabel:', !!selectedLabel, 'selectedLabel value:', selectedLabel);
   
   const handleClearSelection = () => {
     clearSelection();

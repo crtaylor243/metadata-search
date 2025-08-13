@@ -22,6 +22,7 @@ export async function GET(
     
     const data = await response.json();
     
+    
     // Process track credits for easier consumption
     const processedTracks = data.tracklist?.map((track: any) => ({
       position: track.position,

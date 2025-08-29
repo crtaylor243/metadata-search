@@ -128,10 +128,12 @@ export default function Home() {
             <Tag className="w-4 h-4" />
             Label Search
           </TabsTrigger>
-          <TabsTrigger value="artist" className="flex items-center gap-2">
-            <Music className="w-4 h-4" />
-            Artist Search
-          </TabsTrigger>
+          {false && (
+            <TabsTrigger value="artist" className="flex items-center gap-2">
+              <Music className="w-4 h-4" />
+              Artist Search
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="label">

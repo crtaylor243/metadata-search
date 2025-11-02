@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc" focusable="false">
+  <title id="title">Record in sleeve icon</title>
+  <desc id="desc">Minimal retro icon of one vinyl record pulled one-third out of a sleeve</desc>
+
+  <!-- Background button -->
+  <rect x="4" y="4" width="88" height="88" rx="16" fill="#F5F1E6"/>
+
+  <!-- Sleeve -->
+  <g>
+    <!-- Back of sleeve -->
+    <rect x="18" y="28" width="60" height="40" rx="6" fill="#C19A6B"/>
+    <!-- Front/top cut with diagonal opening -->
+    <path d="M18 44 L48 36 L78 44 L78 62 C78 65.3137 75.3137 68 72 68 L24 68 C20.6863 68 18 65.3137 18 62 Z" fill="#B3875C"/>
+    <!-- Thin edge highlight -->
+    <path d="M18 44 L48 36 L78 44" stroke="#D9B58A" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Record (1/3 pulled out to the right) -->
+  <g>
+    <circle cx="60" cy="40" r="18" fill="#111111"/>
+    <circle cx="60" cy="40" r="5" fill="#E9D985"/>
+    <circle cx="60" cy="40" r="1.8" fill="#111111"/>
+    <!-- Simple sheen -->
+    <path d="M51 33 C54 30, 58 29, 62 31" stroke="#2A2A2A" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  </g>
+</svg>

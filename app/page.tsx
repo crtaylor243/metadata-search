@@ -117,8 +117,16 @@ export default function Home() {
   
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Discography Search</h1>
+      <div className="mb-8 flex items-center gap-4">
+        <button
+          onClick={handleClearSelection}
+          className="flex-shrink-0 w-12 h-12 rounded-xl hover:opacity-80 transition-opacity"
+          title="Home - Clear selection"
+          aria-label="Home"
+        >
+          <img src="/icon.svg" alt="Home" className="w-full h-full" />
+        </button>
+        <h1 className="text-4xl font-bold">Discography Search</h1>
       </div>
       
       {/* Main Tabs */}
@@ -128,12 +136,10 @@ export default function Home() {
             <Tag className="w-4 h-4" />
             Label Search
           </TabsTrigger>
-          {false && (
-            <TabsTrigger value="artist" className="flex items-center gap-2">
-              <Music className="w-4 h-4" />
-              Artist Search
-            </TabsTrigger>
-          )}
+          <TabsTrigger value="artist" className="flex items-center gap-2">
+            <Music className="w-4 h-4" />
+            Artist Search
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="label">

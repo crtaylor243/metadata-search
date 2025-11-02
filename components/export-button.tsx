@@ -7,7 +7,7 @@ import { exportToSpreadsheet } from '@/lib/export-utils';
 import { ExportStatus } from '@/components/export-status';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { triggerRateLimitTimeout, rateLimiter } from '@/lib/discogs-rate-limiter';
+import { rateLimiter } from '@/lib/discogs-rate-limiter';
 
 export function ExportButton() {
   const [isExporting, setIsExporting] = useState(false);
@@ -116,17 +116,7 @@ export function ExportButton() {
     <div className="space-y-4">
       {/* Export Status Indicator */}
       <div className="flex items-center justify-center">
-        <div 
-          onDoubleClick={() => {
-            console.log('Double-click detected! Triggering manual rate limit timeout for testing');
-            triggerRateLimitTimeout();
-            console.log('Timeout triggered, checking status:', rateLimiter.getRateLimitStatus());
-          }}
-          className="cursor-pointer"
-          title="Double-click to test cooling off timeout"
-        >
-          <ExportStatus />
-        </div>
+        <ExportStatus />
       </div>
 
       {/* Release Selection Count */}

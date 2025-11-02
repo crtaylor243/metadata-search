@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc" focusable="false">
+  <title id="title">Record in sleeve icon (dark)</title>
+  <desc id="desc">Minimal retro icon suitable for dark UI</desc>
+
+  <!-- Background button -->
+  <rect x="4" y="4" width="88" height="88" rx="16" fill="#1C1C1C"/>
+
+  <!-- Sleeve -->
+  <g>
+    <!-- Back of sleeve -->
+    <rect x="18" y="28" width="60" height="40" rx="6" fill="#A87A4D"/>
+    <!-- Front/top cut with diagonal opening -->
+    <path d="M18 44 L48 36 L78 44 L78 62 C78 65.3137 75.3137 68 72 68 L24 68 C20.6863 68 18 65.3137 18 62 Z" fill="#8F6A45"/>
+    <!-- Thin edge highlight -->
+    <path d="M18 44 L48 36 L78 44" stroke="#C69C6D" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
+  </g>
+
+  <!-- Record (1/3 pulled out to the right) -->
+  <g>
+    <circle cx="60" cy="40" r="18" fill="#0B0B0B"/>
+    <circle cx="60" cy="40" r="5" fill="#E2C86E"/>
+    <circle cx="60" cy="40" r="1.8" fill="#0B0B0B"/>
+    <!-- Simple sheen -->
+    <path d="M51 33 C54 30, 58 29, 62 31" stroke="#2F2F2F" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+  </g>
+</svg>

@@ -4,23 +4,10 @@ import { useSelectionStore } from '@/stores/selection-store';
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
-import { rateLimiter } from '@/lib/discogs-rate-limiter';
-import { useEffect, useState } from 'react';
 
 export function ExportStatus() {
   const { selectedReleases, selectedArtist, selectedLabel } = useSelectionStore();
   const queryClient = useQueryClient();
-  const [rateLimitStatus, setRateLimitStatus] = useState(rateLimiter.getRateLimitStatus());
-
-  // Update rate limit status periodically
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const newStatus = rateLimiter.getRateLimitStatus();
-      setRateLimitStatus(newStatus);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   if (selectedReleases.length === 0) {
     return (
@@ -31,63 +18,43 @@ export function ExportStatus() {
     );
   }
 
-  // Check if any release track queries are still loading
-  let loadingQueries = 0;
-  let totalQueries = 0;
-  let failedQueries = 0;
+  // Check main releases query status
+  // Tracks are now loaded in bulk with releases, so we only need to check the main query
+  let isLoading = false;
+  let hasFailed = false;
 
-  selectedReleases.forEach(release => {
-    totalQueries++;
-    const queryState = queryClient.getQueryState(['release', release.id]);
-    if (queryState) {
-      if (queryState.status === 'pending') {
-        loadingQueries++;
-      } else if (queryState.status === 'error') {
-        failedQueries++;
-      }
-    } else {
-      // Query hasn't been initiated yet, count as loading
-      loadingQueries++;
-    }
-  });
-
-  // Also check main releases query
   if (selectedArtist) {
     const releasesQueryState = queryClient.getQueryState(['releases', selectedArtist.id]);
     if (releasesQueryState?.status === 'pending') {
-      loadingQueries++;
-      totalQueries++;
+      isLoading = true;
     } else if (releasesQueryState?.status === 'error') {
-      failedQueries++;
-      totalQueries++;
+      hasFailed = true;
     }
   }
 
   if (selectedLabel) {
     const labelReleasesQueryState = queryClient.getQueryState(['label-releases', selectedLabel.id]);
     if (labelReleasesQueryState?.status === 'pending') {
-      loadingQueries++;
-      totalQueries++;
+      isLoading = true;
     } else if (labelReleasesQueryState?.status === 'error') {
-      failedQueries++;
-      totalQueries++;
+      hasFailed = true;
     }
   }
 
-  if (loadingQueries > 0) {
+  if (isLoading) {
     return (
       <Badge variant="secondary" className="flex items-center gap-1 bg-yellow-100 text-yellow-800 border-yellow-200">
         <Loader2 className="w-3 h-3 animate-spin" />
-        Data Loading ({totalQueries - loadingQueries}/{totalQueries})
+        Loading Releases & Tracks...
       </Badge>
     );
   }
 
-  if (failedQueries > 0) {
+  if (hasFailed) {
     return (
       <Badge variant="destructive" className="flex items-center gap-1">
         <AlertCircle className="w-3 h-3" />
-        {failedQueries} Failed - Retrying
+        Failed to Load Data
       </Badge>
     );
   }

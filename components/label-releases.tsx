@@ -1,30 +1,28 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useQuery, useQueries } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useSelectionStore } from '@/stores/selection-store';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Loader2, ChevronDown, ChevronRight, Eye, EyeOff, Music } from 'lucide-react';
+import { ChevronDown, ChevronRight, Music } from 'lucide-react';
 
 // Individual release component with expandable tracks
-function LabelReleaseItem({ 
-  release, 
-  isExpanded, 
-  isSelected, 
-  onToggleExpansion, 
-  onToggleSelection,
-  trackData 
+function LabelReleaseItem({
+  release,
+  isExpanded,
+  isSelected,
+  onToggleExpansion,
+  onToggleSelection
 }: {
   release: any;
   isExpanded: boolean;
   isSelected: boolean;
   onToggleExpansion: () => void;
   onToggleSelection: () => void;
-  trackData: any;
 }) {
 
   return (
@@ -37,27 +35,16 @@ function LabelReleaseItem({
               checked={isSelected}
               onCheckedChange={onToggleSelection}
             />
-            <div className="w-12 h-12 rounded bg-muted flex items-center justify-center overflow-hidden shrink-0">
-              {release.thumb ? (
-                <img
-                  src={release.thumb}
-                  alt={release.title}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                  }}
-                />
-              ) : null}
-              <Music className={`w-5 h-5 text-muted-foreground ${release.thumb ? 'hidden' : ''}`} />
-            </div>
-            <div className="flex-1 min-w-0 max-w-md">
+            <div className="flex-1 min-w-0">
               <div className="flex items-start gap-2 mb-1">
                 <h3 className="font-medium leading-tight break-words">
                   {release.artist && (
                     <span className="text-muted-foreground">{release.artist} - </span>
                   )}
                   {release.title}
+                  <span className="text-xs text-muted-foreground ml-2 font-mono">
+                    (ID: {release.id})
+                  </span>
                 </h3>
               </div>
               <div className="text-sm text-muted-foreground">
@@ -115,25 +102,12 @@ function LabelReleaseItem({
         {/* Track Listing */}
         <CollapsibleContent>
           <div className="border-t bg-muted/30 p-4">
-            {trackData?.isLoading && (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                Loading tracks...
-              </div>
-            )}
-            
-            {trackData?.error && (
-              <p className="text-center text-destructive py-4">
-                Failed to load tracks
-              </p>
-            )}
-            
-            {trackData?.data?.processedTracks && (
+            {release.tracks && release.tracks.length > 0 ? (
               <div className="space-y-3">
                 <h4 className="font-semibold text-sm">Track Listing</h4>
                 <div className="space-y-2">
-                  {trackData.data.processedTracks.map((track: any) => (
-                    <div key={track.position} className="text-sm">
+                  {release.tracks.map((track: any, index: number) => (
+                    <div key={`${release.id}-${track.position}-${index}`} className="text-sm">
                       <div className="flex items-start gap-3">
                         <Badge variant="outline" className="shrink-0 text-xs">
                           {track.position}
@@ -145,22 +119,16 @@ function LabelReleaseItem({
                               Duration: {track.duration}
                             </p>
                           )}
-                          {track.writers?.length > 0 && (
-                            <p className="text-muted-foreground text-xs">
-                              Writers: {track.writers.join(', ')}
-                            </p>
-                          )}
-                          {track.producers?.length > 0 && (
-                            <p className="text-muted-foreground text-xs">
-                              Producers: {track.producers.join(', ')}
-                            </p>
-                          )}
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
+            ) : (
+              <p className="text-center text-muted-foreground py-4">
+                No tracks available for this release
+              </p>
             )}
           </div>
         </CollapsibleContent>
@@ -170,8 +138,10 @@ function LabelReleaseItem({
 }
 
 export function LabelReleases() {
-  const { selectedLabel, selectedReleases, toggleRelease, addTrackDetails } = useSelectionStore();
+  const { selectedLabel, selectedReleases, toggleRelease } = useSelectionStore();
   const [expandedReleases, setExpandedReleases] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 100;
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['label-releases', selectedLabel?.id],
@@ -184,63 +154,25 @@ export function LabelReleases() {
     enabled: !!selectedLabel?.id
   });
 
-
   // Releases are already sorted by catalog number from the API
-  const releases = data?.releases || [];
+  // Track data is now included in the releases response
+  const allReleases = data?.releases || [];
 
-  // Track which releases need track details loaded
-  const releasesToLoad = [...selectedReleases, ...Array.from(expandedReleases).map(id => 
-    releases.find(r => r.id === id)
-  ).filter(Boolean)];
-  
-  // Only load track details for selected releases and expanded releases
-  const trackQueries = useQueries({
-    queries: releasesToLoad.map((release: any) => ({
-      queryKey: ['release', release.id],
-      queryFn: async () => {
-        const res = await fetch(`/api/discogs/release/${release.id}`);
-        if (!res.ok) throw new Error('Failed to fetch release details');
-        const data = await res.json();
-        
-        // Process tracks similar to artist releases
-        const processedTracks = data.tracklist?.map((track: any) => ({
-          position: track.position,
-          title: track.title,
-          duration: track.duration,
-          writers: track.extraartists?.filter((artist: any) => 
-            artist.role?.toLowerCase().includes('written') || 
-            artist.role?.toLowerCase().includes('composer')
-          )?.map((artist: any) => artist.name) || [],
-          producers: track.extraartists?.filter((artist: any) => 
-            artist.role?.toLowerCase().includes('producer')
-          )?.map((artist: any) => artist.name) || []
-        })) || [];
+  // Calculate pagination
+  const totalPages = Math.ceil(allReleases.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const releases = allReleases.slice(startIndex, endIndex);
 
-        return {
-          ...data,
-          processedTracks,
-          displayYear: data.year || 'Unknown',
-          displayLabel: data.labels?.[0]?.name || 'Unknown',
-          displayFormat: data.formats?.map((f: any) => f.name).join(', ') || 'Unknown'
-        };
-      },
-      staleTime: Infinity,
-    }))
-  });
-
-  const getTrackData = (releaseId: string) => {
-    const queryIndex = releasesToLoad.findIndex((r: any) => r.id === releaseId);
-    return queryIndex >= 0 ? trackQueries[queryIndex] : null;
-  };
-
-  // Add track details to selection store when available
+  // Reset to page 1 when label changes
   useEffect(() => {
-    trackQueries.forEach((query, index) => {
-      if (query.data && releasesToLoad[index] && !query.isLoading && !query.error) {
-        addTrackDetails(releasesToLoad[index].id, query.data);
-      }
-    });
-  }, [trackQueries.map(q => q.data).join(','), releasesToLoad.map(r => r?.id || '').join(','), addTrackDetails]);
+    setCurrentPage(1);
+    setExpandedReleases(new Set());
+  }, [selectedLabel?.id]);
+
+  // Create a Set of selected release IDs for O(1) lookup performance
+  // This prevents O(n) array.some() calls when rendering releases
+  const selectedReleaseIds = new Set(selectedReleases.map(r => r.id));
 
   const toggleReleaseExpansion = (releaseId: string) => {
     setExpandedReleases(prev => {
@@ -255,7 +187,7 @@ export function LabelReleases() {
   };
 
   const isReleaseSelected = (release: any) => {
-    return selectedReleases.some(r => r.id === release.id);
+    return selectedReleaseIds.has(release.id);
   };
 
   const handleReleaseToggle = (release: any) => {
@@ -337,8 +269,58 @@ export function LabelReleases() {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="max-h-[600px] overflow-y-auto space-y-4">
-        <div className="space-y-3">
+      <CardContent className="space-y-4">
+        {/* Pagination Controls - Top */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between border-b pb-4">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="w-9 px-2"
+              >
+                ⟦
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="w-9 px-2"
+              >
+                ‹
+              </Button>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPages} ({startIndex + 1}-{Math.min(endIndex, allReleases.length)} of {allReleases.length} releases)
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="w-9 px-2"
+              >
+                ›
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="w-9 px-2"
+              >
+                ⟧
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Releases List */}
+        <div className="max-h-[600px] overflow-y-auto space-y-3">
           {releases.map((release: any) => (
             <LabelReleaseItem
               key={release.id}
@@ -347,10 +329,58 @@ export function LabelReleases() {
               isSelected={isReleaseSelected(release)}
               onToggleExpansion={() => toggleReleaseExpansion(release.id)}
               onToggleSelection={() => handleReleaseToggle(release)}
-              trackData={getTrackData(release.id)}
             />
           ))}
         </div>
+
+        {/* Pagination Controls - Bottom */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between border-t pt-4">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="w-9 px-2"
+              >
+                ⟦
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="w-9 px-2"
+              >
+                ‹
+              </Button>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPages}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="w-9 px-2"
+              >
+                ›
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="w-9 px-2"
+              >
+                ⟧
+              </Button>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

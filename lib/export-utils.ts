@@ -7,10 +7,16 @@ export function exportToSpreadsheet(data: {
   trackDetails: Map<string, any>;
 }) {
   const wb = XLSX.utils.book_new();
-  
+
   // Create single sheet in "Contract Schedule" format
   const contractData: any[] = [];
-  
+
+  // Determine the artist name to use across all tracks
+  // For artist exports, use the selected artist's name consistently
+  // For label exports, use the artist from each individual release
+  const useSelectedArtist = !!data.artist;
+  const selectedArtistName = data.artist?.title || data.artist?.name;
+
   // Releases are already sorted by catalog number from the API
   data.releases.forEach(release => {
     const details = data.trackDetails.get(release.id);
@@ -18,15 +24,19 @@ export function exportToSpreadsheet(data: {
       details.processedTracks.forEach((track: any) => {
         // Use album name without format brackets
         const albumWithFormat = release.title;
-        
+
         // Get writers (Control column) - comma-separated
         const writers = Array.isArray(track.writers) && track.writers.length > 0
           ? track.writers.join(', ')
           : '';
-        
-        // Use artist name from release details - this is the definitive source
-        const artistName = details.artists?.[0]?.name;
-        
+
+        // Determine artist name:
+        // - For artist exports: Use selected artist name consistently
+        // - For label exports: Use artist from release details
+        const artistName = useSelectedArtist
+          ? selectedArtistName
+          : details.artists?.[0]?.name;
+
         contractData.push({
           'Artist': artistName,
           'Album': albumWithFormat,

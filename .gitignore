@@ -3,6 +3,18 @@
 **/CLAUDE.md
 .claude/*
 
+tools/discogs-xml2db/mysql
+tools/discogs-xml2db/alternatives
+tools/discogs-xml2db/.github
+tools/discogs-xml2db/.vscode
+
+# Ignore raw data files, except for the queries
+data/* 
+!data/queries
+
+## don't commit any pg conf
+**/postgresql*.conf
+
 .env 
 .env.*
 !.env.example

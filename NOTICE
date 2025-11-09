@@ -1,0 +1,46 @@
+Metadata Search Application
+Copyright 2025 Ryan Taylor
+
+This product includes software developed by Ryan Taylor.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+---
+
+THIRD-PARTY SOFTWARE
+
+This product includes code from discogs-xml2db:
+  Copyright (c) Philip Mateescu
+  Licensed under the Apache License, Version 2.0
+  Source: https://github.com/philipmat/discogs-xml2db
+
+  Portions of this software are derived from or include code from discogs-xml2db,
+  specifically:
+    - Database schema definitions (tools/discogs-xml2db/postgresql/sql/)
+    - CSV import utilities (tools/discogs-xml2db/postgresql/)
+    - Database configuration utilities (tools/discogs-xml2db/postgresql/dbconfig.py)
+
+---
+
+DATA SOURCES
+
+This application uses data from Discogs (https://www.discogs.com/).
+Discogs data is licensed under CC0 1.0 Universal (CC0 1.0) Public Domain Dedication.
+See: https://www.discogs.com/developers#page:database,header:database-license
+
+---
+
+DEPENDENCIES
+
+Third-party JavaScript/Node.js dependencies and their licenses can be found in package.json.
+Third-party Python dependencies and their licenses can be found in tools/discogs-xml2db/requirements.txt.

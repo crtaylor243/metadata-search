@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useQueries } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useSelectionStore } from '@/stores/selection-store';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,6 @@ export function ReleasesWithTracks() {
   const { selectedArtist, selectedReleases, toggleRelease } = useSelectionStore();
   const [expandedReleases, setExpandedReleases] = useState<Set<string>>(new Set());
   const [showAll, setShowAll] = useState(false);
-  const [showMastersOnly, setShowMastersOnly] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['releases', selectedArtist?.id],
@@ -28,27 +27,14 @@ export function ReleasesWithTracks() {
   });
 
   const releases = data?.releases || [];
-  const allMainReleases = releases.filter((r: any) => 
-    r.type === 'master' || r.role === 'Main'
-  );
-  
-  // Apply master releases filter
-  const mainReleases = showMastersOnly 
-    ? allMainReleases.filter((r: any) => r.type === 'master')
-    : allMainReleases;
 
-  // Get track details for all main releases to have complete metadata
-  const trackQueries = useQueries({
-    queries: mainReleases.map((release: any) => ({
-      queryKey: ['release', release.id],
-      queryFn: async () => {
-        const res = await fetch(`/api/discogs/release/${release.id}`);
-        if (!res.ok) throw new Error('Failed to fetch release details');
-        return res.json();
-      },
-      staleTime: Infinity,
-    }))
-  });
+  // Database returns only main artist releases (already filtered by INNER JOIN)
+  // Track data is now included in the releases response, no need for separate queries
+  const mainReleases = releases;
+
+  // Create a Set of selected release IDs for O(1) lookup performance
+  // This prevents O(n) array.some() calls when rendering many releases
+  const selectedReleaseIds = new Set(selectedReleases.map(r => r.id));
 
   const toggleExpanded = (releaseId: string) => {
     const newExpanded = new Set(expandedReleases);
@@ -69,11 +55,6 @@ export function ReleasesWithTracks() {
       setExpandedReleases(allReleaseIds);
       setShowAll(true);
     }
-  };
-
-  const getTrackData = (releaseId: string) => {
-    const queryIndex = mainReleases.findIndex((r: any) => r.id === releaseId);
-    return queryIndex >= 0 ? trackQueries[queryIndex] : null;
   };
 
   if (!selectedArtist) return null;
@@ -128,37 +109,29 @@ export function ReleasesWithTracks() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {/* Filter Options */}
+        {/* Release count */}
         <div className="flex items-center justify-between pb-4 border-b">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="masters-only-releases"
-              checked={showMastersOnly}
-              onCheckedChange={setShowMastersOnly}
-            />
-            <label
-              htmlFor="masters-only-releases"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Show master releases only
-            </label>
-          </div>
           <Badge variant="outline" className="text-xs">
-            {mainReleases.length} of {allMainReleases.length} releases
+            {mainReleases.length} releases
           </Badge>
         </div>
-        
+
         <div className="space-y-4 mt-4 lg:max-h-none lg:overflow-y-visible max-h-96 overflow-y-auto">
           {mainReleases.map((release: any) => {
-            const isSelected = selectedReleases.some(r => r.id === release.id);
+            const isSelected = selectedReleaseIds.has(release.id);
             const isExpanded = expandedReleases.has(release.id);
-            const trackQuery = getTrackData(release.id);
-            
-            // Use detailed data if available, fallback to basic data
-            const detailedData = trackQuery?.data;
-            const displayYear = detailedData?.displayYear || release.year || 'Unknown';
-            const displayLabel = detailedData?.displayLabel || release.label || 'Unknown';
-            const displayFormat = detailedData?.displayFormat || release.format || 'Unknown';
+
+            // Track data is now included in the release object from the database
+            const displayYear = release.year || 'Unknown';
+            const displayLabel = release.label || 'Unknown';
+
+            // Display multiple formats if available from the array, otherwise use the string
+            let displayFormat = 'Unknown';
+            if (release.format_names && release.format_names.length > 0) {
+              displayFormat = release.format_names.join(', ');
+            } else if (release.format) {
+              displayFormat = release.format;
+            }
             
             return (
               <Collapsible key={release.id} open={isExpanded} onOpenChange={() => toggleExpanded(release.id)}>
@@ -173,9 +146,33 @@ export function ReleasesWithTracks() {
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0 mr-4">
                           <p className="font-medium">{release.title}</p>
-                          <p className="text-sm text-muted-foreground break-words">
-                            {displayYear} • {displayLabel} • {displayFormat}
-                          </p>
+                          <div className="text-sm text-muted-foreground">
+                            {/* Format table matching label releases style */}
+                            {release.format_names && release.format_names.length > 0 ? (
+                              <div className="mt-2 max-w-md">
+                                <div className="border rounded-md overflow-hidden">
+                                  <table className="w-full text-xs">
+                                    <tbody>
+                                      {release.format_names.map((format: string, idx: number) => (
+                                        <tr key={idx} className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
+                                          <td className="px-2 py-1">{format}</td>
+                                          <td className="px-2 py-1 font-mono">
+                                            {release.label_names?.[idx] || displayLabel}
+                                          </td>
+                                          <td className="px-2 py-1">{displayYear}</td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                            ) : (
+                              /* Fallback if no format_names */
+                              <div className="mt-1">
+                                {displayYear} • {displayLabel} • {displayFormat}
+                              </div>
+                            )}
+                          </div>
                         </div>
                         <CollapsibleTrigger asChild>
                           <Button variant="ghost" size="sm">
@@ -196,25 +193,12 @@ export function ReleasesWithTracks() {
                   {/* Track Listing */}
                   <CollapsibleContent>
                     <div className="border-t bg-muted/30 p-4">
-                      {trackQuery?.isLoading && (
-                        <div className="flex items-center justify-center py-4">
-                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                          Loading tracks...
-                        </div>
-                      )}
-                      
-                      {trackQuery?.error && (
-                        <p className="text-center text-destructive py-4">
-                          Failed to load tracks
-                        </p>
-                      )}
-                      
-                      {trackQuery?.data?.processedTracks && (
+                      {release.tracks && release.tracks.length > 0 ? (
                         <div className="space-y-3">
                           <h4 className="font-semibold text-sm">Track Listing</h4>
                           <div className="space-y-2">
-                            {trackQuery.data.processedTracks.map((track: any) => (
-                              <div key={track.position} className="text-sm">
+                            {release.tracks.map((track: any, index: number) => (
+                              <div key={`${release.id}-${track.position}-${index}`} className="text-sm">
                                 <div className="flex items-start gap-3">
                                   <Badge variant="outline" className="shrink-0 text-xs">
                                     {track.position}
@@ -226,22 +210,16 @@ export function ReleasesWithTracks() {
                                         Duration: {track.duration}
                                       </p>
                                     )}
-                                    {track.writers?.length > 0 && (
-                                      <p className="text-muted-foreground text-xs">
-                                        Writers: {track.writers.join(', ')}
-                                      </p>
-                                    )}
-                                    {track.producers?.length > 0 && (
-                                      <p className="text-muted-foreground text-xs">
-                                        Producers: {track.producers.join(', ')}
-                                      </p>
-                                    )}
                                   </div>
                                 </div>
                               </div>
                             ))}
                           </div>
                         </div>
+                      ) : (
+                        <p className="text-center text-muted-foreground py-4">
+                          No tracks available for this release
+                        </p>
                       )}
                     </div>
                   </CollapsibleContent>

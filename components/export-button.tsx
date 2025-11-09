@@ -11,7 +11,7 @@ import { rateLimiter } from '@/lib/discogs-rate-limiter';
 
 export function ExportButton() {
   const [isExporting, setIsExporting] = useState(false);
-  const { selectedArtist, selectedLabel, selectedReleases, trackDetails, toggleRelease } = useSelectionStore();
+  const { selectedArtist, selectedLabel, selectedReleases, toggleRelease } = useSelectionStore();
   const queryClient = useQueryClient();
   
   // Use reactive queries to ensure component updates when data changes
@@ -29,11 +29,11 @@ export function ExportButton() {
 
   const artistReleases = artistData?.releases || [];
   const labelReleases = labelData?.releases || [];
-  
-  // For artist releases, filter to main releases only
-  // For label releases, use all releases since they're already filtered by the label
-  const allAvailableReleases = selectedArtist 
-    ? artistReleases.filter((r: any) => r.type === 'master' || r.role === 'Main')
+
+  // Database already filters artist releases to main artist credits (ra.extra = 0)
+  // No need to filter again - just use all releases from the query
+  const allAvailableReleases = selectedArtist
+    ? artistReleases
     : labelReleases;
     
   // Check if data is loaded and available
@@ -42,60 +42,52 @@ export function ExportButton() {
   
   const canExport = (selectedArtist || selectedLabel) && selectedReleases.length > 0;
 
-  // Check if data is ready for export (all queries completed successfully)
+  // Check if data is ready for export
+  // Tracks are now loaded in bulk with releases, so we only need to check the main query
   const isDataReady = () => {
     if (selectedReleases.length === 0) return false;
 
-    // Check if any release track queries are still loading or failed
-    let hasLoadingOrFailedQueries = false;
-    
-    selectedReleases.forEach(release => {
-      const queryState = queryClient.getQueryState(['release', release.id]);
-      if (!queryState || queryState.status === 'pending' || queryState.status === 'error') {
-        hasLoadingOrFailedQueries = true;
-      }
-    });
-
-    // Also check main releases query
+    // Check main releases query status
     if (selectedArtist) {
       const releasesQueryState = queryClient.getQueryState(['releases', selectedArtist.id]);
-      if (releasesQueryState && (releasesQueryState.status === 'pending' || releasesQueryState.status === 'error')) {
-        hasLoadingOrFailedQueries = true;
+      if (!releasesQueryState || releasesQueryState.status === 'pending' || releasesQueryState.status === 'error') {
+        return false;
       }
     }
 
     if (selectedLabel) {
       const labelReleasesQueryState = queryClient.getQueryState(['label-releases', selectedLabel.id]);
-      if (labelReleasesQueryState && (labelReleasesQueryState.status === 'pending' || labelReleasesQueryState.status === 'error')) {
-        hasLoadingOrFailedQueries = true;
+      if (!labelReleasesQueryState || labelReleasesQueryState.status === 'pending' || labelReleasesQueryState.status === 'error') {
+        return false;
       }
     }
 
-    return !hasLoadingOrFailedQueries;
+    return true;
   };
   
   const handleExport = async () => {
     if (!canExport) return;
-    
+
     setIsExporting(true);
     try {
-      // Fetch track details for releases that don't have them loaded yet
-      const trackDetailsMap = new Map(trackDetails);
-      
+      // Build track details map from the releases
+      // Tracks are now included in the release objects from the API (3-stage loading)
+      const trackDetailsMap = new Map();
+
       for (const release of selectedReleases) {
-        if (!trackDetailsMap.has(release.id)) {
-          try {
-            const res = await fetch(`/api/discogs/release/${release.id}`);
-            if (res.ok) {
-              const trackData = await res.json();
-              trackDetailsMap.set(release.id, trackData);
-            }
-          } catch (error) {
-            console.warn(`Failed to fetch tracks for ${release.title}:`, error);
-          }
+        // Find the full release data with tracks from the cached query
+        const fullRelease = allAvailableReleases.find((r: any) => r.id === release.id);
+
+        if (fullRelease && (fullRelease as any).tracks) {
+          // Tracks are already loaded in the release object
+          trackDetailsMap.set(release.id, {
+            processedTracks: (fullRelease as any).tracks
+          });
+        } else {
+          console.warn(`No tracks found for release ${release.title}`);
         }
       }
-      
+
       exportToSpreadsheet({
         artist: selectedArtist,
         label: selectedLabel,

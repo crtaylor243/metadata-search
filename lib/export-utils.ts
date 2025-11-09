@@ -32,10 +32,15 @@ export function exportToSpreadsheet(data: {
 
         // Determine artist name:
         // - For artist exports: Use selected artist name consistently
-        // - For label exports: Use artist from release details
-        const artistName = useSelectedArtist
-          ? selectedArtistName
-          : details.artists?.[0]?.name;
+        // - For label exports: Use artist from the release object (stored during selection)
+        let artistName = 'Unknown Artist';
+        if (useSelectedArtist) {
+          artistName = selectedArtistName;
+        } else {
+          // For label exports, get artist from the release object
+          // The artist field is populated when the release is displayed in label-releases.tsx
+          artistName = (release as any).artist || 'Unknown Artist';
+        }
 
         contractData.push({
           'Artist': artistName,

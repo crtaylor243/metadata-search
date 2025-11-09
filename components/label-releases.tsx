@@ -197,7 +197,8 @@ export function LabelReleases() {
       year: release.year || 0,
       labels: release.label ? [{ name: selectedLabel?.title }] : [],
       formats: [release.format],
-      country: release.country
+      country: release.country,
+      artist: release.artist // Include artist for label exports
     });
   };
 

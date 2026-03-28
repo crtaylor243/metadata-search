@@ -4,26 +4,26 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 40 20% 98%;
+    --foreground: 230 16% 9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --primary: 0 0% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 30 12% 94%;
+    --secondary-foreground: 230 16% 9%;
+    --muted: 30 12% 94%;
+    --muted-foreground: 230 10% 35%;
+    --accent: 21 87% 56%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+    --border: 26 18% 84%;
+    --input: 26 18% 84%;
+    --ring: 21 87% 56%;
+    --radius: 0.3rem;
 
     --space-1: 0.25rem;
     --space-2: 0.5rem;
@@ -39,8 +39,8 @@
     --text-xl: 1.25rem;
     --text-2xl: 1.5rem;
 
-    --surface-1: 210 20% 98%;
-    --surface-2: 220 14% 96%;
+    --surface-1: 40 20% 98%;
+    --surface-2: 30 16% 95%;
   }
 }
 
@@ -51,14 +51,29 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    background-image: radial-gradient(circle at 0 0, hsl(var(--secondary) / 0.45), transparent 42%);
   }
 
   :focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 
+  h1,
+  h2,
+  h3,
+  [data-display='serif'] {
+    font-family: var(--font-display), Georgia, serif;
+    letter-spacing: 0.01em;
+  }
+
+  .kicker {
+    @apply text-[0.7rem] uppercase tracking-[0.18em] text-muted-foreground;
+  }
+
   .design-new .card-redesign {
     @apply border-border/80 shadow-none;
+    background: hsl(var(--card) / 0.72);
+    backdrop-filter: blur(2px);
   }
 
   .design-new .surface-subtle {
@@ -67,5 +82,10 @@
 
   .design-new .surface-quiet {
     background-color: hsl(var(--surface-2));
+  }
+
+  .design-new .editorial-divider {
+    border-top: 1px solid hsl(var(--border));
+    border-bottom: 1px solid hsl(var(--border));
   }
 }

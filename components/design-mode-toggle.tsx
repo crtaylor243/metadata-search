@@ -7,10 +7,11 @@ export type DesignMode = 'classic' | 'new';
 
 export function DesignModeToggle({ mode, onChange }: { mode: DesignMode; onChange: (mode: DesignMode) => void }) {
   return (
-    <Cluster className="rounded-lg border p-1" role="tablist" aria-label="Design mode">
+    <Cluster className="editorial-divider rounded-none px-1 py-1" role="tablist" aria-label="Design mode">
       <Button
         size="sm"
         variant={mode === 'classic' ? 'default' : 'ghost'}
+        className="h-7 px-2 text-[10px] uppercase tracking-[0.14em]"
         role="tab"
         aria-selected={mode === 'classic'}
         onClick={() => onChange('classic')}
@@ -20,6 +21,7 @@ export function DesignModeToggle({ mode, onChange }: { mode: DesignMode; onChang
       <Button
         size="sm"
         variant={mode === 'new' ? 'default' : 'ghost'}
+        className="h-7 px-2 text-[10px] uppercase tracking-[0.14em]"
         role="tab"
         aria-selected={mode === 'new'}
         onClick={() => onChange('new')}

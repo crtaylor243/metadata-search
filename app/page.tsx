@@ -52,7 +52,8 @@ function RecentSearchCard({ search, onSelect, onRemove, redesign }: { search: an
             <User className={`size-5 ${artistDetails?.profileImage ? 'hidden' : ''}`} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold tracking-tight">{search.artistName}</h3>
+            <p className="kicker">Artist</p>
+            <h3 className="text-xl font-semibold tracking-tight" data-display="serif">{search.artistName}</h3>
             {artistDetails?.realname && artistDetails.realname !== search.artistName ? (
               <p className="text-sm text-muted-foreground">{artistDetails.realname}</p>
             ) : null}
@@ -91,18 +92,21 @@ export default function Home() {
   return (
     <PageShell className={isRedesignEnabled ? 'design-new' : 'design-classic'}>
       <Section>
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b pb-4">
+        <header className="editorial-divider flex flex-wrap items-center justify-between gap-3 py-5">
           <Cluster>
             <button onClick={clearSelection} className="size-10 rounded-md transition-opacity hover:opacity-80" title="Home - Clear selection" aria-label="Home">
               <img src="/icon.svg" alt="Home" className="h-full w-full" />
             </button>
-            <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">Discography Search</h1>
+            <div>
+              <p className="kicker">Discogs metadata explorer</p>
+              <h1 className="text-4xl font-medium md:text-5xl" data-display="serif">Discography Search</h1>
+            </div>
           </Cluster>
           <DesignModeToggle mode={mode} onChange={setMode} />
         </header>
 
         <Tabs defaultValue="label" className="w-full">
-          <TabsList className="mb-4">
+          <TabsList className="mb-5">
             <TabsTrigger value="label" className="flex items-center gap-2"><Tag className="size-4" />Label Search</TabsTrigger>
             <TabsTrigger value="artist" className="flex items-center gap-2"><Music className="size-4" />Artist Search</TabsTrigger>
           </TabsList>
@@ -112,7 +116,7 @@ export default function Home() {
               <LabelSearchForm />
               {selectedLabel ? (
                 <div className="grid gap-4 lg:grid-cols-3">
-                  <div className="lg:col-span-1"><Card className="card-redesign"><CardHeader><CardTitle>Export Data</CardTitle><CardDescription>Download selected releases as spreadsheet</CardDescription></CardHeader><CardContent><ExportButton /></CardContent></Card></div>
+                  <div className="lg:col-span-1"><Card className="card-redesign"><CardHeader><p className="kicker">Action</p><CardTitle data-display="serif" className="text-2xl font-medium">Export Data</CardTitle><CardDescription>Download selected releases as spreadsheet</CardDescription></CardHeader><CardContent><ExportButton /></CardContent></Card></div>
                   <div className="lg:col-span-2"><LabelReleases /></div>
                 </div>
               ) : null}
@@ -124,7 +128,10 @@ export default function Home() {
               <Card className="card-redesign">
                 <CardHeader>
                   <div className="flex items-center justify-between gap-3">
-                    <CardTitle>Search Artist</CardTitle>
+                    <div>
+                      <p className="kicker">Discovery</p>
+                      <CardTitle data-display="serif" className="text-2xl font-medium">Search Artist</CardTitle>
+                    </div>
                     {selectedArtist ? <Button type="button" variant="outline" size="sm" onClick={clearSelection}><X className="mr-2 size-4" />Search again</Button> : null}
                   </div>
                 </CardHeader>
@@ -133,13 +140,14 @@ export default function Home() {
 
               {selectedArtist ? (
                 <div className="grid gap-4 lg:grid-cols-3">
-                  <div className="lg:col-span-1"><Card className="card-redesign"><CardHeader><CardTitle>Export Data</CardTitle><CardDescription>Download selected releases as spreadsheet</CardDescription></CardHeader><CardContent><ExportButton /></CardContent></Card></div>
+                  <div className="lg:col-span-1"><Card className="card-redesign"><CardHeader><p className="kicker">Action</p><CardTitle data-display="serif" className="text-2xl font-medium">Export Data</CardTitle><CardDescription>Download selected releases as spreadsheet</CardDescription></CardHeader><CardContent><ExportButton /></CardContent></Card></div>
                   <div className="lg:col-span-2"><ReleasesWithTracks /></div>
                 </div>
               ) : (
                 <Card className="card-redesign">
                   <CardHeader>
-                    <CardTitle>Recent Artist Searches</CardTitle>
+                    <p className="kicker">History</p>
+                    <CardTitle data-display="serif" className="text-2xl font-medium">Recent Artist Searches</CardTitle>
                     <CardDescription>{isMounted && recentSearches.length > 0 ? 'Select an artist to continue quickly.' : 'Your artist search history will appear here.'}</CardDescription>
                   </CardHeader>
                   <CardContent>

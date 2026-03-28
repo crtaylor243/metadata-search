@@ -44,7 +44,7 @@ function RecentLabelSearchCard({ search, onSelect, onRemove }: { search: any; on
 
   return (
     <div 
-      className="group relative overflow-hidden rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-6 shadow-lg cursor-pointer hover:shadow-xl hover:border-primary/30 transition-all duration-200"
+      className="group relative cursor-pointer overflow-hidden rounded-[var(--radius)] border border-border bg-card p-6 transition-colors hover:bg-secondary/60"
       onClick={handleClick}
       title="Click to select this label"
     >
@@ -86,7 +86,7 @@ function RecentLabelSearchCard({ search, onSelect, onRemove }: { search: any; on
             variant="ghost"
             size="sm"
             onClick={handleRemove}
-            className="opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive transition-all"
+            className="opacity-0 transition-opacity group-hover:opacity-100"
             title="Remove from search history"
           >
             <X className="w-4 h-4" />
@@ -172,7 +172,6 @@ export function LabelSearchForm() {
                 variant="outline" 
                 size="sm"
                 onClick={clearLabelSelection}
-                className="border-2 hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive transition-all"
                 title="Clear selection and search again"
               >
                 <X className="w-4 h-4 mr-2" />
@@ -192,7 +191,7 @@ export function LabelSearchForm() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search for a record label"
-                className="pl-10 pr-4 h-12 text-base border-2 focus:border-primary transition-colors w-full"
+                className="h-11 w-full border-border pl-10 pr-4 text-base"
               />
             </div>
             
@@ -202,7 +201,7 @@ export function LabelSearchForm() {
               type="submit" 
               disabled={isLoading || !query.trim()}
               size="lg"
-              className="h-12 px-6 font-medium shadow-sm hover:shadow-md transition-all"
+              className="h-11 px-6 font-medium"
             >
               {isLoading ? (
                 <>
@@ -222,7 +221,7 @@ export function LabelSearchForm() {
                 variant="outline" 
                 size="lg"
                 onClick={handleClear}
-                className="h-12 px-4 border-2 hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive transition-all"
+                className="h-11 px-4"
                 title="Clear search and selection"
               >
                 <X className="w-4 h-4 mr-2" />
@@ -238,7 +237,7 @@ export function LabelSearchForm() {
           {/* Selected Label Display */}
           {selectedLabel && (
             <div 
-              className="relative overflow-hidden rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-6 shadow-lg cursor-pointer hover:shadow-xl hover:border-primary/30 transition-all duration-200"
+              className="relative cursor-pointer overflow-hidden rounded-[var(--radius)] border border-border bg-card p-6 transition-colors hover:bg-secondary/60"
               onClick={() => window.open(`https://www.discogs.com/label/${selectedLabel.id}`, '_blank')}
               title="Click to view on Discogs"
             >
@@ -305,7 +304,7 @@ export function LabelSearchForm() {
       
       {/* Error State */}
       {error && (
-        <Alert variant="destructive" className="border-2">
+        <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="ml-2">
             Label search failed. Please check your connection and try again.
@@ -334,9 +333,8 @@ export function LabelSearchForm() {
                 key={label.id}
                 onClick={() => handleSelectLabel(label)}
                 className={cn(
-                  "group relative overflow-hidden rounded-lg border-2 p-4 cursor-pointer",
-                  "transition-all duration-200 hover:shadow-lg hover:border-primary/50",
-                  "hover:-translate-y-0.5 hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent",
+                  "group relative cursor-pointer overflow-hidden rounded-[var(--radius)] border p-4",
+                  "transition-colors duration-150 hover:border-foreground/30 hover:bg-secondary/60",
                   "bg-card"
                 )}
                 style={{

@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronRight, Music } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Individual release component with expandable tracks
 function LabelReleaseItem({
@@ -204,17 +206,11 @@ export function LabelReleases() {
 
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-12">
-          <div className="flex flex-col items-center space-y-4">
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-muted rounded-full"></div>
-              <div className="absolute top-0 w-16 h-16 border-4 border-primary rounded-full animate-spin border-t-transparent"></div>
-            </div>
-            <p className="text-sm text-muted-foreground animate-pulse">
-              Loading label releases...
-            </p>
-          </div>
+      <Card className="card-redesign">
+        <CardContent className="space-y-3 py-6">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
         </CardContent>
       </Card>
     );
@@ -222,14 +218,9 @@ export function LabelReleases() {
 
   if (error) {
     return (
-      <Card>
-        <CardContent className="py-12">
-          <div className="text-center">
-            <p className="text-destructive">Failed to load releases</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Please try again later
-            </p>
-          </div>
+      <Card className="card-redesign">
+        <CardContent className="py-8">
+          <EmptyState title="Failed to load releases" description="Please try again later." />
         </CardContent>
       </Card>
     );
@@ -237,12 +228,9 @@ export function LabelReleases() {
 
   if (!releases.length) {
     return (
-      <Card>
-        <CardContent className="py-12">
-          <div className="text-center">
-            <Music className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No releases found for this label</p>
-          </div>
+      <Card className="card-redesign">
+        <CardContent className="py-8">
+          <EmptyState title="No releases found" description="Try a different label or broaden your search." icon={<Music className='size-5' />} />
         </CardContent>
       </Card>
     );
@@ -252,7 +240,7 @@ export function LabelReleases() {
   const selectedCount = selectedReleases.length;
 
   return (
-    <Card>
+    <Card className="card-redesign">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>

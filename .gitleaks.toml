@@ -1,0 +1,19 @@
+title = "metadata-search gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Global allowlist for generated fixtures and lockfiles"
+paths = [
+  '''tools/discogs-xml2db/tests/samples/''',
+  '''package-lock.json'''
+]
+
+[[rules]]
+id = "discogs-token"
+description = "Discogs personal access token"
+regex = '''(?i)discogs[_-]?token\s*[:=]\s*[\"']?[A-Za-z0-9_\-]{20,}[\"']?'''
+secretGroup = 0
+entropy = 3.5
+keywords = ["discogs", "token"]

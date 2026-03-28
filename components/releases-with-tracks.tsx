@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Loader2, ChevronDown, ChevronRight, Eye, EyeOff } from 'lucide-react';
+import { ChevronDown, ChevronRight, Eye, EyeOff, Music2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 
 export function ReleasesWithTracks() {
   const { selectedArtist, selectedReleases, toggleRelease } = useSelectionStore();
@@ -61,9 +63,11 @@ export function ReleasesWithTracks() {
 
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin" />
+      <Card className="card-redesign">
+        <CardContent className="space-y-3 py-6">
+          <Skeleton className="h-6 w-1/3" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
         </CardContent>
       </Card>
     );
@@ -71,18 +75,26 @@ export function ReleasesWithTracks() {
 
   if (error) {
     return (
-      <Card>
+      <Card className="card-redesign">
         <CardContent className="py-8">
-          <p className="text-center text-destructive">
-            Failed to load releases. Please try again.
-          </p>
+          <EmptyState title="Could not load releases" description="Please retry in a few moments." />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!mainReleases.length) {
+    return (
+      <Card className="card-redesign">
+        <CardContent className="py-8">
+          <EmptyState title="No releases found" description="Try another artist or adjust your search." icon={<Music2 className='size-5' />} />
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
+    <Card className="card-redesign">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Releases & Tracks</span>

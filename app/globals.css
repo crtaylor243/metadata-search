@@ -4,26 +4,26 @@
 
 @layer base {
   :root {
-    --background: 40 20% 98%;
-    --foreground: 230 16% 9%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 5%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 0 0% 10%;
+    --primary: 0 0% 5%;
     --primary-foreground: 0 0% 98%;
-    --secondary: 30 12% 94%;
-    --secondary-foreground: 230 16% 9%;
-    --muted: 30 12% 94%;
-    --muted-foreground: 230 10% 35%;
-    --accent: 21 87% 56%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 8%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
+    --accent: 3 79% 52%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 26 18% 84%;
-    --input: 26 18% 84%;
-    --ring: 21 87% 56%;
-    --radius: 0.3rem;
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
+    --ring: 3 79% 52%;
+    --radius: 0.125rem;
 
     --space-1: 0.25rem;
     --space-2: 0.5rem;
@@ -39,8 +39,8 @@
     --text-xl: 1.25rem;
     --text-2xl: 1.5rem;
 
-    --surface-1: 40 20% 98%;
-    --surface-2: 30 16% 95%;
+    --surface-1: 0 0% 98%;
+    --surface-2: 0 0% 95%;
   }
 }
 
@@ -51,29 +51,20 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    background-image: radial-gradient(circle at 0 0, hsl(var(--secondary) / 0.45), transparent 42%);
+    font-family: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
   }
 
   :focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 
-  h1,
-  h2,
-  h3,
-  [data-display='serif'] {
-    font-family: var(--font-display), Georgia, serif;
-    letter-spacing: 0.01em;
-  }
-
   .kicker {
-    @apply text-[0.7rem] uppercase tracking-[0.18em] text-muted-foreground;
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground;
   }
 
   .design-new .card-redesign {
     @apply border-border/80 shadow-none;
-    background: hsl(var(--card) / 0.72);
-    backdrop-filter: blur(2px);
+    background: hsl(var(--card));
   }
 
   .design-new .surface-subtle {

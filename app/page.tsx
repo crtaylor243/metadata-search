@@ -53,7 +53,7 @@ function RecentSearchCard({ search, onSelect, onRemove, redesign }: { search: an
           </div>
           <div>
             <p className="kicker">Artist</p>
-            <h3 className="text-xl font-semibold tracking-tight" data-display="serif">{search.artistName}</h3>
+            <h3 className="text-lg font-semibold tracking-tight uppercase">{search.artistName}</h3>
             {artistDetails?.realname && artistDetails.realname !== search.artistName ? (
               <p className="text-sm text-muted-foreground">{artistDetails.realname}</p>
             ) : null}
@@ -99,7 +99,7 @@ export default function Home() {
             </button>
             <div>
               <p className="kicker">Discogs metadata explorer</p>
-              <h1 className="text-4xl font-medium md:text-5xl" data-display="serif">Discography Search</h1>
+              <h1 className="text-3xl font-semibold uppercase tracking-[0.08em] md:text-4xl">Discography Search</h1>
             </div>
           </Cluster>
           <DesignModeToggle mode={mode} onChange={setMode} />
@@ -116,7 +116,7 @@ export default function Home() {
               <LabelSearchForm />
               {selectedLabel ? (
                 <div className="grid gap-4 lg:grid-cols-3">
-                  <div className="lg:col-span-1"><Card className="card-redesign"><CardHeader><p className="kicker">Action</p><CardTitle data-display="serif" className="text-2xl font-medium">Export Data</CardTitle><CardDescription>Download selected releases as spreadsheet</CardDescription></CardHeader><CardContent><ExportButton /></CardContent></Card></div>
+                  <div className="lg:col-span-1"><Card className="card-redesign"><CardHeader><p className="kicker">Action</p><CardTitle className="text-xl font-semibold uppercase tracking-[0.06em]">Export Data</CardTitle><CardDescription>Download selected releases as spreadsheet</CardDescription></CardHeader><CardContent><ExportButton /></CardContent></Card></div>
                   <div className="lg:col-span-2"><LabelReleases /></div>
                 </div>
               ) : null}
@@ -130,7 +130,7 @@ export default function Home() {
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="kicker">Discovery</p>
-                      <CardTitle data-display="serif" className="text-2xl font-medium">Search Artist</CardTitle>
+                      <CardTitle className="text-xl font-semibold uppercase tracking-[0.06em]">Search Artist</CardTitle>
                     </div>
                     {selectedArtist ? <Button type="button" variant="outline" size="sm" onClick={clearSelection}><X className="mr-2 size-4" />Search again</Button> : null}
                   </div>
@@ -140,14 +140,14 @@ export default function Home() {
 
               {selectedArtist ? (
                 <div className="grid gap-4 lg:grid-cols-3">
-                  <div className="lg:col-span-1"><Card className="card-redesign"><CardHeader><p className="kicker">Action</p><CardTitle data-display="serif" className="text-2xl font-medium">Export Data</CardTitle><CardDescription>Download selected releases as spreadsheet</CardDescription></CardHeader><CardContent><ExportButton /></CardContent></Card></div>
+                  <div className="lg:col-span-1"><Card className="card-redesign"><CardHeader><p className="kicker">Action</p><CardTitle className="text-xl font-semibold uppercase tracking-[0.06em]">Export Data</CardTitle><CardDescription>Download selected releases as spreadsheet</CardDescription></CardHeader><CardContent><ExportButton /></CardContent></Card></div>
                   <div className="lg:col-span-2"><ReleasesWithTracks /></div>
                 </div>
               ) : (
                 <Card className="card-redesign">
                   <CardHeader>
                     <p className="kicker">History</p>
-                    <CardTitle data-display="serif" className="text-2xl font-medium">Recent Artist Searches</CardTitle>
+                    <CardTitle className="text-xl font-semibold uppercase tracking-[0.06em]">Recent Artist Searches</CardTitle>
                     <CardDescription>{isMounted && recentSearches.length > 0 ? 'Select an artist to continue quickly.' : 'Your artist search history will appear here.'}</CardDescription>
                   </CardHeader>
                   <CardContent>
